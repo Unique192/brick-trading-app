@@ -1,0 +1,3498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Mobile App Features -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#E95438">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<!-- For PWA -->
+<link rel="manifest" href="manifest.json">
+    <title data-translate="appTitle">Brick Trading Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js for Reports -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        /* --- CSS Variables for Easy Theming --- */
+        :root {
+            --color-primary: #E95438; /* Brick Red */
+            --color-secondary: #26B7CD; /* Bright Cyan */
+            --color-success: #28a745;
+            --color-danger: #dc3545;
+            --color-warning: #ffc107;
+            --color-info: #17a2b8;
+            --color-background: #F7F9FC;
+            --color-card-bg: #FFFFFF;
+            --color-text: #333333;
+            --color-subtext: #6c757d;
+            --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-dark: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        /* --- Global Styles --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Noto Sans Urdu', sans-serif;
+            background: var(--color-background);
+            min-height: 100vh;
+            padding: 10px;
+            color: var(--color-text);
+            transition: all 0.3s;
+        }
+
+        /* Right-to-Left (RTL) style for Urdu */
+        body.ur {
+            direction: rtl;
+            text-align: right;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--color-card-bg);
+            border-radius: 15px;
+            box-shadow: var(--shadow-dark);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- Login Screen --- */
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: var(--color-card-bg);
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-dark);
+            text-align: center;
+        }
+
+        .login-logo {
+            font-size: 48px;
+            color: var(--color-primary);
+            margin-bottom: 20px;
+        }
+
+        .login-title {
+            font-size: 28px;
+            color: var(--color-primary);
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            color: var(--color-subtext);
+            margin-bottom: 30px;
+        }
+
+        .login-form {
+            margin-top: 30px;
+        }
+
+        .user-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-type-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .user-type-btn.active {
+            border-color: var(--color-primary);
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .login-input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        body.ur .login-input-group {
+            text-align: right;
+        }
+
+        .login-input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .login-error {
+            color: var(--color-danger);
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        /* --- Header and Language Selector --- */
+        .header {
+            background: var(--color-primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-info {
+            text-align: left;
+        }
+
+        body.ur .header-info {
+            text-align: right;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 3px;
+        }
+        .header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+
+        .user-role {
+            font-size: 11px;
+            background: white;
+            color: var(--color-primary);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px;
+        }
+        
+        /* Language Toggle Bar */
+        .language-toggle-bar {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 15px;
+            background: var(--color-card-bg);
+            border-bottom: 1px solid #f0f0f0;
+        }
+        body.ur .language-toggle-bar {
+            justify-content: flex-start;
+        }
+
+        .lang-btn {
+            padding: 6px 12px;
+            margin-left: 8px;
+            border: 1px solid var(--color-subtext);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            background: none;
+            color: var(--color-subtext);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        body.ur .lang-btn {
+            margin-left: 0;
+            margin-right: 8px;
+        }
+
+        .lang-btn:first-child { margin-left: 0; }
+        body.ur .lang-btn:first-child { margin-right: 0; }
+
+        .lang-btn.active {
+            background: var(--color-secondary);
+            color: white;
+            border-color: var(--color-secondary);
+            box-shadow: 0 2px 5px rgba(38, 183, 205, 0.4);
+        }
+
+        /* --- Navigation Tabs --- */
+        .nav-tabs-wrapper {
+            padding: 10px 15px 0 15px;
+            background: var(--color-card-bg);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid #f0f0f0;
+            overflow-x: auto;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: var(--color-background);
+            border-radius: 12px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 5px;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            min-width: 450px;
+        }
+
+        .nav-tab {
+            flex-shrink: 0;
+            padding: 10px 12px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-subtext);
+            transition: all 0.3s;
+            border-radius: 8px;
+            margin: 0 2px;
+        }
+
+        .nav-tab.active {
+            background: var(--color-primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(233, 84, 56, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* --- Dashboard Statistic Cards --- */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--color-card-bg);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-light);
+            text-align: left;
+            border-top: 5px solid;
+            min-height: 100px;
+        }
+
+        .stat-card.profit-loss { border-color: var(--color-success); }
+        .stat-card.stock-info { border-color: var(--color-secondary); }
+        .stat-card.revenue-info { border-color: var(--color-primary); }
+        .stat-card.purchased-info { border-color: #6c757d; }
+        .stat-card.metric-info { border-color: var(--color-info); }
+        .stat-card.expense-info { border-color: var(--color-warning); }
+
+        .stat-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: var(--color-subtext);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--color-subtext);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .stat-value.profit-text { color: var(--color-success); }
+        .stat-value.loss-text { color: var(--color-danger); }
+
+        /* --- Forms and Inputs --- */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--color-text);
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background: white;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(233, 84, 56, 0.2);
+        }
+
+        .btn {
+            padding: 15px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #d4482e;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--color-danger);
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: var(--color-success);
+        }
+
+        .btn-info {
+            background: var(--color-info);
+        }
+
+        .btn-warning {
+            background: var(--color-warning);
+            color: #333;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        /* --- Brick List Cards --- */
+        .brick-type-card { 
+            background: var(--color-card-bg);
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            padding: 15px;
+            box-shadow: var(--shadow-light);
+            border-left: 5px solid var(--color-secondary);
+        }
+        body.ur .brick-type-card {
+            border-left: none;
+            border-right: 5px solid var(--color-secondary);
+        }
+
+        .brick-type-header { 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .brick-type-name { 
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--color-primary);
+        }
+
+        .brick-type-stock {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 15px;
+            color: var(--color-secondary);
+            background: #d1ecf1;
+        }
+
+        .brick-type-details { 
+            font-size: 13px;
+            color: var(--color-subtext);
+            margin-bottom: 15px;
+            line-height: 1.8;
+            padding-top: 5px;
+            border-top: 1px dashed #eee;
+        }
+
+        .brick-type-actions { 
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        /* --- Transaction History List --- */
+        .transaction-item {
+            background: var(--color-card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-left: 5px solid;
+            transition: all 0.2s;
+        }
+        
+        .transaction-item.purchase { border-color: var(--color-success); }
+        .transaction-item.sale { border-color: var(--color-primary); }
+        .transaction-item.expense { border-color: var(--color-warning); }
+        
+        body.ur .transaction-item { border-left: none; border-right: 5px solid; }
+        body.ur .transaction-item.purchase { border-right-color: var(--color-success); }
+        body.ur .transaction-item.sale { border-right-color: var(--color-primary); }
+        body.ur .transaction-item.expense { border-right-color: var(--color-warning); }
+
+        .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .transaction-type {
+            font-weight: bold;
+            font-size: 15px;
+        }
+        .transaction-type.purchase { color: var(--color-success); }
+        .transaction-type.sale { color: var(--color-primary); }
+        .transaction-type.expense { color: var(--color-warning); }
+
+        .transaction-date {
+            font-size: 12px;
+            color: var(--color-subtext);
+        }
+
+        .transaction-details {
+            font-size: 13px;
+            color: var(--color-text);
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .transaction-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        /* --- Customer Details in Sales --- */
+        .customer-details-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--color-info);
+        }
+
+        body.ur .customer-details-section {
+            border-left: none;
+            border-right: 4px solid var(--color-info);
+        }
+
+        .customer-details-section h4 {
+            margin-bottom: 10px;
+            color: var(--color-primary);
+        }
+
+        /* --- History Search & Filter --- */
+        .history-controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--color-card-bg);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 40px;
+            width: 100%;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-subtext);
+        }
+
+        body.ur .search-box i {
+            left: auto;
+            right: 12px;
+        }
+
+        body.ur .search-box input {
+            padding-left: 12px;
+            padding-right: 40px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* --- Reports Page --- */
+        .report-section {
+            background: var(--color-card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .report-section h3 {
+            margin-bottom: 15px;
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-background);
+            padding-bottom: 8px;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .report-table th, .report-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        body.ur .report-table th, body.ur .report-table td {
+            text-align: right;
+        }
+
+        .report-table th {
+            background: var(--color-background);
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .report-table tr:hover {
+            background: var(--color-background);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .date-range-picker {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .date-range-picker input {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        /* --- Contacts Page --- */
+        .contacts-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: var(--color-background);
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .sub-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            color: var(--color-subtext);
+            transition: all 0.3s;
+        }
+
+        .sub-tab.active {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .contact-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .contact-card {
+            background: var(--color-card-bg);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-light);
+            border-left: 4px solid var(--color-info);
+        }
+
+        body.ur .contact-card {
+            border-left: none;
+            border-right: 4px solid var(--color-info);
+        }
+
+        .contact-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .contact-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--color-primary);
+        }
+
+        .contact-type {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .contact-type.customer {
+            background: #d4edda;
+            color: var(--color-success);
+        }
+
+        .contact-type.supplier {
+            background: #d1ecf1;
+            color: var(--color-info);
+        }
+
+        .contact-details {
+            font-size: 14px;
+            color: var(--color-subtext);
+            line-height: 1.6;
+        }
+
+        .contact-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #eee;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--color-primary);
+        }
+
+        .stat-label-small {
+            font-size: 11px;
+            color: var(--color-subtext);
+        }
+
+        /* --- Expenses Management --- */
+        .expense-category-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .expense-utility { background: #d1ecf1; color: var(--color-info); }
+        .expense-rent { background: #f8d7da; color: var(--color-danger); }
+        .expense-salary { background: #d4edda; color: var(--color-success); }
+        .expense-transport { background: #fff3cd; color: var(--color-warning); }
+        .expense-other { background: #e2e3e5; color: #6c757d; }
+
+        /* --- Notifications --- */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-dark);
+            border-left: 5px solid;
+            z-index: 1000;
+            min-width: 300px;
+            max-width: 90%;
+            animation: slideIn 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        body.ur .notification {
+            right: auto;
+            left: 20px;
+            border-left: none;
+            border-right: 5px solid;
+        }
+
+        .notification.notification-warning {
+            border-color: var(--color-warning);
+            background: #fff3cd;
+        }
+
+        .notification.notification-success {
+            border-color: var(--color-success);
+            background: #d4edda;
+        }
+
+        .notification.notification-info {
+            border-color: var(--color-info);
+            background: #d1ecf1;
+        }
+
+        .notification.notification-danger {
+            border-color: var(--color-danger);
+            background: #f8d7da;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--color-subtext);
+            margin-left: 10px;
+        }
+
+        body.ur .notification-close {
+            margin-left: 0;
+            margin-right: 10px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        body.ur @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* --- Empty States --- */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--color-subtext);
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: var(--color-text);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--color-subtext);
+        }
+
+        /* --- Alert Warning --- */
+        .alert-warning {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeeba;
+            border-radius: 8px;
+            color: #856404;
+            background-color: #fff3cd;
+        }
+
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 480px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            .nav-tabs-wrapper {
+                padding: 10px 0 0 0;
+            }
+            .nav-tabs {
+                min-width: 100%;
+                border-radius: 0;
+            }
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+            .notification {
+                left: 10px;
+                right: 10px;
+                max-width: calc(100% - 20px);
+            }
+            .date-range-picker {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            .header-info {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="en">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-logo">🧱</div>
+        <h1 class="login-title" data-translate="appTitle">Brick Trading Manager</h1>
+        <p class="login-subtitle" data-translate="loginSubtitle">Secure Business Login</p>
+        
+        <div class="user-type-selector">
+            <button class="user-type-btn active" id="ownerBtn" onclick="selectUserType('owner')" data-translate="btnOwner">Owner</button>
+            <button class="user-type-btn" id="salesmanBtn" onclick="selectUserType('salesman')" data-translate="btnSalesman">Salesman</button>
+        </div>
+        
+        <form id="loginForm" class="login-form">
+            <div class="login-input-group">
+                <label for="username" data-translate="labelUsername">Username</label>
+                <input type="text" id="username" class="login-input" required data-translate-placeholder="phUsername" placeholder="Enter username">
+            </div>
+            
+            <div class="login-input-group">
+                <label for="password" data-translate="labelPassword">Password</label>
+                <input type="password" id="password" class="login-input" required data-translate-placeholder="phPassword" placeholder="Enter password">
+            </div>
+            
+            <div class="login-error" id="loginError" data-translate="loginError">Invalid username or password!</div>
+            
+            <button type="submit" class="btn" data-translate="btnLogin">Login</button>
+        </form>
+        
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+            <div class="language-toggle-bar" style="justify-content: center; padding: 0; border: none;">
+                <button id="langEnLogin" class="lang-btn active" onclick="setLanguage('en')">
+                    <i class="fa-solid fa-globe"></i> English
+                </button>
+                <button id="langUrLogin" class="lang-btn" onclick="setLanguage('ur')">
+                    <i class="fa-solid fa-globe"></i> اردو
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container (Hidden until login) -->
+    <div id="appContainer" class="container" style="display: none;">
+        
+        <div class="header">
+            <div class="header-info">
+                <h1 data-translate="appTitle">🧱 Brick Trading</h1>
+                <p data-translate="appSubtitle">Business Manager</p>
+            </div>
+            <div class="user-info">
+                <span id="currentUserName">User</span>
+                <span class="user-role" id="currentUserRole">Owner</span>
+                <button class="logout-btn" onclick="logout()" title="Logout">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="language-toggle-bar">
+            <button id="langEn" class="lang-btn active" onclick="setLanguage('en')">
+                <i class="fa-solid fa-globe"></i> English
+            </button>
+            <button id="langUr" class="lang-btn" onclick="setLanguage('ur')">
+                <i class="fa-solid fa-globe"></i> اردو
+            </button>
+        </div>
+
+        <div class="nav-tabs-wrapper">
+            <div class="nav-tabs">
+                <!-- Owner Tabs -->
+                <button class="nav-tab active owner-only" onclick="showTab('dashboard', event)" data-translate="navDashboard">Dashboard</button>
+                <button class="nav-tab owner-only" onclick="showTab('manageBricks', event)" data-translate="navManageBricks">Manage Bricks</button> 
+                <button class="nav-tab owner-only" onclick="showTab('purchase', event)" data-translate="navPurchase">Purchase</button>
+                <button class="nav-tab" onclick="showTab('sale', event)" data-translate="navSale">Sale</button>
+                <button class="nav-tab owner-only" onclick="showTab('expenses', event)" data-translate="navExpenses">Expenses</button>
+                <button class="nav-tab owner-only" onclick="showTab('contacts', event)" data-translate="navContacts">Contacts</button>
+                <button class="nav-tab owner-only" onclick="showTab('reports', event)" data-translate="navReports">Reports</button>
+                <button class="nav-tab" onclick="showTab('history', event)" data-translate="navHistory">History</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab (Owner Only) -->
+        <div id="dashboard" class="tab-content active">
+            <h3 style="margin-bottom: 15px;">Business Snapshot</h3>
+            <div class="summary-grid">
+                <div class="stat-card profit-loss">
+                    <div class="stat-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <div class="stat-label" data-translate="dashNetProfit">Net Profit/Loss</div>
+                    <div class="stat-value" id="netProfit">Rs.0</div>
+                </div>
+                <div class="stat-card revenue-info">
+                    <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <div class="stat-label" data-translate="dashRevenue">Total Revenue</div>
+                    <div class="stat-value" id="totalRevenue">Rs.0</div>
+                </div>
+                <div class="stat-card purchased-info">
+                    <div class="stat-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                    <div class="stat-label" data-translate="dashCogs">Cost of Goods Sold</div>
+                    <div class="stat-value" id="totalCogs">Rs.0</div>
+                </div>
+                <div class="stat-card expense-info">
+                    <div class="stat-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+                    <div class="stat-label" data-translate="dashExpenses">Total Expenses</div>
+                    <div class="stat-value" id="totalExpenses">Rs.0</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 15px;">Advanced Metrics</h3>
+            <div class="summary-grid">
+                <div class="stat-card metric-info">
+                    <div class="stat-icon"><i class="fa-solid fa-percentage"></i></div>
+                    <div class="stat-label">Gross Margin %</div>
+                    <div class="stat-value" id="grossMargin">0%</div>
+                </div>
+                <div class="stat-card metric-info">
+                    <div class="stat-icon"><i class="fa-solid fa-retweet"></i></div>
+                    <div class="stat-label">Inventory Turnover</div>
+                    <div class="stat-value" id="inventoryTurnover">0.0</div>
+                </div>
+                <div class="stat-card metric-info">
+                    <div class="stat-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                    <div class="stat-label">Return on Investment</div>
+                    <div class="stat-value" id="roi">0%</div>
+                </div>
+                <div class="stat-card metric-info">
+                    <div class="stat-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+                    <div class="stat-label">Current Ratio</div>
+                    <div class="stat-value" id="currentRatio">0.0</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 15px;">Inventory Overview</h3>
+            <div class="summary-grid">
+                <div class="stat-card stock-info">
+                    <div class="stat-icon"><i class="fa-solid fa-cubes"></i></div>
+                    <div class="stat-label" data-translate="dashStock">Total Bricks in Stock</div>
+                    <div class="stat-value" id="stockRemaining">0</div>
+                </div>
+                <div class="stat-card purchased-info">
+                    <div class="stat-icon"><i class="fa-solid fa-arrow-down"></i></div>
+                    <div class="stat-label" data-translate="dashTotalPurchased">Bricks Purchased</div>
+                    <div class="stat-value" id="totalPurchased">0</div>
+                </div>
+                <div class="stat-card revenue-info">
+                    <div class="stat-icon"><i class="fa-solid fa-arrow-up"></i></div>
+                    <div class="stat-label" data-translate="dashTotalSold">Bricks Sold</div>
+                    <div class="stat-value" id="totalSold">0</div>
+                </div>
+                <div class="stat-card expense-info">
+                    <div class="stat-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <div class="stat-label">Expense Categories</div>
+                    <div class="stat-value" id="expenseCategories">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Bricks Tab (Owner Only) -->
+        <div id="manageBricks" class="tab-content">
+            <div class="form-group">
+                <button class="btn" onclick="showBrickTypeForm()" data-translate="btnAddNewBrick">+ Add New Brick Type</button>
+            </div>
+
+            <div id="addBrickTypeForm" style="display: none; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px; color: var(--color-primary);" data-translate="h3AddNewBrick">Add New Brick Type</h3>
+                <form id="brickTypeForm">
+                    <div class="form-group">
+                        <label data-translate="labelBrickTypeName">Brick Type Name</label>
+                        <input type="text" id="brickTypeName" required data-translate-placeholder="phBrickTypeName" placeholder="e.g., Red Brick, Fly Ash Brick">
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="labelInitialStock">Initial Stock (pieces)</label>
+                        <input type="number" id="initialStock" value="0" min="0" required data-translate-placeholder="phInitialStock" placeholder="Enter initial quantity">
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="labelAvgPurchasePrice">Initial Avg. Purchase Price (Rs.)</label>
+                        <input type="number" id="avgPurchasePrice" step="0.01" value="0.00" min="0" required data-translate-placeholder="phAvgPurchasePrice" placeholder="Enter average purchase price">
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="labelAvgSalePrice">Average Sale Price (Rs.)</label>
+                        <input type="number" id="avgSalePrice" step="0.01" value="0.00" min="0" required data-translate-placeholder="phAvgSalePrice" placeholder="Enter average sale price">
+                    </div>
+
+                    <button type="submit" class="btn" data-translate="btnAddNewBrick">Add Brick Type</button>
+                    <button type="button" class="btn btn-danger" onclick="hideBrickTypeForm()" data-translate="btnCancel">Cancel</button>
+                </form>
+            </div>
+
+            <div id="brickTypeList"></div>
+        </div>
+
+        <!-- Purchase Tab (Owner Only) -->
+        <div id="purchase" class="tab-content">
+            <div id="purchaseWarning" class="alert-warning" style="display: none;">
+                <span data-translate="alertNoBrickType">Please define at least one **Brick Type** in the **Manage Bricks** tab before adding a purchase.</span>
+            </div>
+            <form id="purchaseForm">
+                <div class="form-group">
+                    <label data-translate="labelFactoryName">Factory Name</label>
+                    <input type="text" id="factoryName" required data-translate-placeholder="phFactoryName" placeholder="Enter factory name">
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="labelBrickType">Brick Type</label>
+                    <select id="purchaseBrickType" required>
+                        <option value="" data-translate="optSelectBrickType">Select brick type</option>
+                        </select>
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="labelQuantity">Quantity (pieces)</label>
+                    <input type="number" id="purchaseQuantity" min="1" required data-translate-placeholder="phEnterQuantity" placeholder="Enter quantity">
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="labelPricePerBrick">Price per Brick (Rs.)</label>
+                    <input type="number" id="purchasePrice" step="0.01" min="0.01" required data-translate-placeholder="phEnterPrice" placeholder="Enter price per brick">
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="labelTransportCost">Transport Cost (Rs.)</label>
+                    <input type="number" id="transportCost" step="0.01" value="0.00" min="0" data-translate-placeholder="phEnterTransportCost" placeholder="Enter transport cost">
+                </div>
+
+                <button type="submit" class="btn" data-translate="btnAddNewPurchase">Add Purchase</button>
+            </form>
+        </div>
+
+        <!-- Sale Tab (Both Owner and Salesman) -->
+        <div id="sale" class="tab-content">
+            <div id="saleWarning" class="alert-warning" style="display: none;">
+                <span data-translate="alertNoBrickType">Please define at least one **Brick Type** in the **Manage Bricks** tab before adding a sale.</span>
+            </div>
+            
+            <div class="customer-details-section">
+                <h4 data-translate="h4CustomerDetails">Customer Details</h4>
+                
+                <!-- Salesman Name Field (Auto-filled for salesman, editable for owner) -->
+                <div class="form-group">
+                    <label data-translate="labelSalesmanName">Salesman Name</label>
+                    <input type="text" id="salesmanName" required data-translate-placeholder="phSalesmanName" placeholder="Enter salesman name">
+                </div>
+                
+                <div class="form-group">
+                    <label data-translate="labelCustomerName">Customer Name *</label>
+                    <input type="text" id="customerName" required data-translate-placeholder="phCustomerName" placeholder="Enter customer name">
+                </div>
+                
+                <div class="form-group">
+                    <label data-translate="labelCustomerPhone">Phone Number</label>
+                    <input type="tel" id="customerPhone" data-translate-placeholder="phCustomerPhone" placeholder="Enter phone number">
+                </div>
+                
+                <div class="form-group">
+                    <label data-translate="labelCustomerAddress">Address</label>
+                    <textarea id="customerAddress" data-translate-placeholder="phCustomerAddress" placeholder="Enter delivery address"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label data-translate="labelCustomerDescription">Description/Notes</label>
+                    <textarea id="customerDescription" data-translate-placeholder="phCustomerDescription" placeholder="Any special notes or requirements"></textarea>
+                </div>
+            </div>
+            
+            <h4 data-translate="h4SaleDetails">Sale Details</h4>
+            <form id="saleForm">
+                <div class="form-group">
+                    <label data-translate="labelBrickType">Brick Type</label>
+                    <select id="saleBrickType" required>
+                        <option value="" data-translate="optSelectBrickType">Select brick type</option>
+                        </select>
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="labelQuantity">Quantity (pieces)</label>
+                    <input type="number" id="saleQuantity" min="1" required data-translate-placeholder="phEnterQuantity" placeholder="Enter quantity">
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="labelSellingPrice">Selling Price per Brick (Rs.)</label>
+                    <input type="number" id="salePrice" step="0.01" min="0.01" required data-translate-placeholder="phEnterSellingPrice" placeholder="Enter selling price per brick">
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="labelDeliveryCost">Delivery Cost (Rs.)</label>
+                    <input type="number" id="deliveryCost" step="0.01" value="0.00" min="0" data-translate-placeholder="phEnterDeliveryCost" placeholder="Enter delivery cost">
+                </div>
+
+                <button type="submit" class="btn" data-translate="btnAddNewSale">Add Sale</button>
+            </form>
+        </div>
+
+        <!-- Expenses Tab (Owner Only) -->
+        <div id="expenses" class="tab-content">
+            <div class="form-group">
+                <button class="btn" onclick="showExpenseForm()" data-translate="btnAddNewExpense">+ Add New Expense</button>
+            </div>
+
+            <div id="addExpenseForm" style="display: none; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px; color: var(--color-primary);" data-translate="h3AddNewExpense">Add New Expense</h3>
+                <form id="expenseForm">
+                    <div class="form-group">
+                        <label data-translate="labelExpenseCategory">Expense Category</label>
+                        <select id="expenseCategory" required>
+                            <option value="" data-translate="optSelectCategory">Select category</option>
+                            <option value="utility" data-translate="optUtility">Utility Bills</option>
+                            <option value="rent" data-translate="optRent">Rent</option>
+                            <option value="salary" data-translate="optSalary">Salaries</option>
+                            <option value="transport" data-translate="optTransport">Transport</option>
+                            <option value="maintenance" data-translate="optMaintenance">Maintenance</option>
+                            <option value="office" data-translate="optOffice">Office Supplies</option>
+                            <option value="other" data-translate="optOther">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="labelExpenseDescription">Description</label>
+                        <input type="text" id="expenseDescription" required data-translate-placeholder="phExpenseDescription" placeholder="e.g., Electricity Bill July, Employee Salary">
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="labelExpenseAmount">Amount (Rs.)</label>
+                        <input type="number" id="expenseAmount" step="0.01" min="0.01" required data-translate-placeholder="phExpenseAmount" placeholder="Enter amount">
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="labelExpenseDate">Date</label>
+                        <input type="date" id="expenseDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="labelExpenseNotes">Notes</label>
+                        <textarea id="expenseNotes" data-translate-placeholder="phExpenseNotes" placeholder="Additional notes or details"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn" data-translate="btnAddNewExpense">Add Expense</button>
+                    <button type="button" class="btn btn-danger" onclick="hideExpenseForm()" data-translate="btnCancel">Cancel</button>
+                </form>
+            </div>
+
+            <div id="expenseList"></div>
+        </div>
+
+        <!-- Contacts Tab (Owner Only) -->
+        <div id="contacts" class="tab-content">
+            <div class="contacts-tabs">
+                <button class="sub-tab active" onclick="showContactType('customers')" data-translate="tabCustomers">Customers</button>
+                <button class="sub-tab" onclick="showContactType('suppliers')" data-translate="tabSuppliers">Suppliers</button>
+            </div>
+            
+            <div id="customersList" class="contact-list">
+                <!-- Customer cards will be loaded here -->
+            </div>
+            
+            <div id="suppliersList" class="contact-list" style="display: none;">
+                <!-- Supplier cards will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Reports Tab (Owner Only) -->
+        <div id="reports" class="tab-content">
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="generatePDFReport()" data-translate="btnExportPDF">Export to PDF</button>
+                <button class="btn btn-info" onclick="printReport()" data-translate="btnPrint">Print Report</button>
+            </div>
+
+            <div class="date-range-picker">
+                <input type="date" id="startDate" class="form-control">
+                <span>to</span>
+                <input type="date" id="endDate" class="form-control">
+                <button class="btn btn-small" onclick="applyDateFilter()" data-translate="btnApply">Apply</button>
+                <button class="btn btn-small btn-danger" onclick="resetDateFilter()" data-translate="btnReset">Reset</button>
+            </div>
+
+            <div class="report-section">
+                <h3 data-translate="reportsMonthly">Monthly Performance</h3>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="report-section">
+                <h3 data-translate="reportsBrickTypes">Brick Type Performance</h3>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th data-translate="thBrickType">Brick Type</th>
+                            <th data-translate="thSold">Sold</th>
+                            <th data-translate="thRevenue">Revenue</th>
+                            <th data-translate="thProfit">Profit</th>
+                            <th data-translate="thProfitMargin">Profit Margin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="brickPerformanceTable"></tbody>
+                </table>
+            </div>
+
+            <div class="report-section">
+                <h3 data-translate="reportsExpenses">Expense Analysis</h3>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th data-translate="thCategory">Category</th>
+                            <th data-translate="thAmount">Amount</th>
+                            <th data-translate="thPercentage">Percentage</th>
+                            <th data-translate="thCount">Count</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseAnalysisTable"></tbody>
+                </table>
+            </div>
+
+            <div class="report-section">
+                <h3 data-translate="reportsTopCustomers">Top Customers</h3>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th data-translate="thCustomer">Customer</th>
+                            <th data-translate="thPurchases">Purchases</th>
+                            <th data-translate="thAmount">Amount</th>
+                            <th data-translate="thLastPurchase">Last Purchase</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topCustomersTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- History Tab (Both, but with different controls) -->
+        <div id="history" class="tab-content">
+            <!-- Owner Controls -->
+            <div id="ownerControls" class="btn-group" style="display: none;">
+                <button class="btn" onclick="exportData()" data-translate="btnExport">Export Data</button>
+                <button class="btn btn-warning" onclick="importData()" data-translate="btnImport">Import Data</button>
+                <button class="btn btn-info" onclick="downloadBackup()" data-translate="btnBackup">Download Backup</button>
+            </div>
+            <input type="file" id="importFile" style="display: none;" accept=".json">
+
+            <div class="history-controls">
+                <div class="search-box">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="searchHistory" data-translate-placeholder="phSearchHistory" placeholder="Search transactions...">
+                </div>
+                <div class="filter-row">
+                    <select id="filterType">
+                        <option value="all" data-translate="optAll">All</option>
+                        <option value="purchase" data-translate="optPurchases">Purchases</option>
+                        <option value="sale" data-translate="optSales">Sales</option>
+                        <option value="expense" data-translate="optExpenses">Expenses</option>
+                    </select>
+                    <select id="filterBrickType">
+                        <option value="all" data-translate="optAllBricks">All Brick Types</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Clear All Data Button (Owner Only) -->
+            <button id="clearAllBtn" class="btn btn-danger" onclick="clearAllData()" data-translate="btnClearAll" style="display: none;">Clear All Data</button>
+            
+            <div id="transactionHistory"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Translation Data ---
+        const translations = {
+            en: {
+                // Login Screen
+                appTitle: "🧱 Brick Trading",
+                loginSubtitle: "Secure Business Login",
+                btnOwner: "Owner",
+                btnSalesman: "Salesman",
+                labelUsername: "Username",
+                phUsername: "Enter username",
+                labelPassword: "Password",
+                phPassword: "Enter password",
+                btnLogin: "Login",
+                loginError: "Invalid username or password!",
+                
+                // Salesman Name Field
+                labelSalesmanName: "Salesman Name",
+                phSalesmanName: "Enter salesman name",
+                
+                // UI Headings/Navigation
+                appSubtitle: "Business Manager",
+                navDashboard: "Dashboard",
+                navManageBricks: "Manage Bricks",
+                navPurchase: "Purchase",
+                navSale: "Sale",
+                navExpenses: "Expenses",
+                navContacts: "Contacts",
+                navReports: "Reports",
+                navHistory: "History",
+                
+                // Dashboard
+                dashRevenue: "Total Revenue",
+                dashCogs: "Cost of Goods Sold",
+                dashNetProfit: "Net Profit/Loss",
+                dashStock: "Total Bricks in Stock",
+                dashInvestment: "Investment in Stock",
+                dashTotalPurchased: "Bricks Purchased",
+                dashTotalSold: "Bricks Sold",
+                dashExpenses: "Total Expenses",
+
+                // Expenses
+                btnAddNewExpense: "+ Add New Expense",
+                h3AddNewExpense: "Add New Expense",
+                labelExpenseCategory: "Expense Category",
+                optSelectCategory: "Select category",
+                optUtility: "Utility Bills",
+                optRent: "Rent",
+                optSalary: "Salaries",
+                optTransport: "Transport",
+                optMaintenance: "Maintenance",
+                optOffice: "Office Supplies",
+                optOther: "Other",
+                labelExpenseDescription: "Description",
+                phExpenseDescription: "e.g., Electricity Bill July, Employee Salary",
+                labelExpenseAmount: "Amount (Rs.)",
+                phExpenseAmount: "Enter amount",
+                labelExpenseDate: "Date",
+                labelExpenseNotes: "Notes",
+                phExpenseNotes: "Additional notes or details",
+                alertExpenseAdded: "Expense added successfully!",
+                confirmDeleteExpense: "Are you sure you want to delete this expense?",
+                alertExpenseDeleted: "Expense deleted successfully!",
+                thCategory: "Category",
+                thPercentage: "Percentage",
+                thCount: "Count",
+
+                // Customer Details
+                h4CustomerDetails: "Customer Details",
+                h4SaleDetails: "Sale Details",
+                labelCustomerPhone: "Phone Number",
+                phCustomerPhone: "Enter phone number",
+                labelCustomerAddress: "Address",
+                phCustomerAddress: "Enter delivery address",
+                labelCustomerDescription: "Description/Notes",
+                phCustomerDescription: "Any special notes or requirements",
+
+                // Contacts
+                tabCustomers: "Customers",
+                tabSuppliers: "Suppliers",
+                thCustomer: "Customer",
+                thSupplier: "Supplier",
+                thTotalPurchases: "Total Purchases",
+                thTotalSpent: "Total Spent",
+                thLastTransaction: "Last Transaction",
+
+                // Reports
+                reportsMonthly: "Monthly Performance",
+                reportsBrickTypes: "Brick Type Performance",
+                reportsExpenses: "Expense Analysis",
+                reportsTopCustomers: "Top Customers",
+                thBrickType: "Brick Type",
+                thSold: "Sold",
+                thRevenue: "Revenue",
+                thProfit: "Profit",
+                thProfitMargin: "Profit Margin",
+                thPurchases: "Purchases",
+                thAmount: "Amount",
+                thLastPurchase: "Last Purchase",
+                btnExportPDF: "Export to PDF",
+                btnPrint: "Print Report",
+                btnApply: "Apply",
+                btnReset: "Reset",
+
+                // History
+                btnExport: "Export Data",
+                btnImport: "Import Data",
+                btnBackup: "Download Backup",
+                phSearchHistory: "Search transactions...",
+                optAll: "All",
+                optPurchases: "Purchases",
+                optSales: "Sales",
+                optExpenses: "Expenses",
+                optAllBricks: "All Brick Types",
+
+                // Manage Bricks
+                btnAddNewBrick: "+ Add New Brick Type",
+                h3AddNewBrick: "Add New Brick Type",
+                labelBrickTypeName: "Brick Type Name",
+                phBrickTypeName: "e.g., Red Brick, Fly Ash Brick",
+                labelInitialStock: "Initial Stock (pieces)",
+                phInitialStock: "Enter initial quantity",
+                labelAvgPurchasePrice: "Initial Avg. Purchase Price (Rs.)",
+                phAvgPurchasePrice: "Enter average purchase price",
+                labelAvgSalePrice: "Average Sale Price (Rs.)",
+                phAvgSalePrice: "Enter average sale price",
+                
+                // Purchase/Sale Forms
+                labelFactoryName: "Factory Name",
+                phFactoryName: "Enter factory name",
+                labelCustomerName: "Customer Name",
+                phCustomerName: "Enter customer name",
+                labelBrickType: "Brick Type",
+                optSelectBrickType: "Select brick type",
+                labelQuantity: "Quantity (pieces)",
+                phEnterQuantity: "Enter quantity",
+                labelPricePerBrick: "Price per Brick (Rs.)",
+                phEnterPrice: "Enter price per brick",
+                labelTransportCost: "Transport Cost (Rs.)",
+                phEnterTransportCost: "Enter transport cost",
+                labelSellingPrice: "Selling Price per Brick (Rs.)",
+                phEnterSellingPrice: "Enter selling price per brick",
+                labelDeliveryCost: "Delivery Cost (Rs.)",
+                phEnterDeliveryCost: "Enter delivery cost",
+                btnAddNewPurchase: "Add Purchase",
+                btnAddNewSale: "Add Sale",
+                btnCancel: "Cancel",
+
+                // History
+                btnClearAll: "Clear All Data",
+                
+                // Dynamic/Alerts
+                alertNoBrickType: "Please define at least one **Brick Type** in the **Manage Bricks** tab before adding a transaction.",
+                alertStockPriceNonNegative: "Stock and prices must be non-negative.",
+                alertNameNotEmpty: "Brick type name cannot be empty!",
+                alertNameExists: "A brick type with this name already exists!",
+                alertBrickTypeAdded: (name) => `Brick type "${name}" added successfully!`,
+                alertCannotDeleteStock: (name) => `Cannot delete ${name}. Stock must be zero (0) before deletion.`,
+                confirmDeleteBrickType: (name) => `Are you sure you want to delete the brick type: ${name}? This action cannot be undone.`,
+                alertBrickTypeDeleted: (name) => `Brick type "${name}" deleted successfully.`,
+                alertQtyPricePositive: "Quantity and Price per Brick must be greater than zero.",
+                alertSelectBrickType: "Please select a brick type!",
+                alertPurchaseAdded: "Purchase added successfully! Average Purchase Price updated.",
+                alertNotEnoughStock: (name, available) => `Not enough stock for ${name}! Available: ${available} pieces.`,
+                alertSaleAdded: "Sale added successfully!",
+                alertTransactionNotFound: "Transaction not found!",
+                alertBrickTypeNotFound: "Error: Associated brick type not found. Cannot safely delete transaction.",
+                confirmDeleteTransaction: (type) => `Are you sure you want to delete this ${type} transaction? This will reverse the stock changes.`,
+                alertCannotDeletePurchase: (name) => `Cannot delete purchase! Deleting it would result in negative stock for ${name}. Sell fewer bricks first.`,
+                alertTransactionDeleted: (type) => `${type.toUpperCase()} transaction deleted successfully. Inventory updated.`,
+                confirmClearAllData: "Are you sure you want to clear ALL data? This action cannot be undone.",
+                alertDataCleared: "All data cleared successfully!",
+                alertLowStock: (name, stock) => `Low stock alert: ${name} has only ${stock} pieces remaining!`,
+                alertExportSuccess: "Data exported successfully!",
+                alertImportSuccess: "Data imported successfully!",
+                alertBackupSuccess: "Backup downloaded successfully!",
+                alertImportError: "Error importing data. Please check the file format.",
+                confirmImport: "Importing data will replace all current data. Are you sure?",
+                alertAccessDenied: "Access denied! You don't have permission to perform this action.",
+                
+                // Dynamic Text Parts
+                textPieces: "pieces",
+                textAvgPurchasePrice: "Avg. Purchase Price (WAC):",
+                textAvgSalePrice: "Avg. Sale Price:",
+                textTotalUnitsPurchased: "Total Units Purchased:",
+                textTotalCost: "Total Cost:",
+                textAdded: "Added:",
+                textStock: "Stock:",
+                textPurchase: "PURCHASE",
+                textSale: "SALE",
+                textExpense: "EXPENSE",
+                textFactory: "Factory",
+                textCustomer: "Customer",
+                textSalesman: "Salesman",
+                textQuantity: "Quantity:",
+                textPricePerBrick: "Price per Brick:",
+                textTransportCost: "Transport Cost:",
+                textDeliveryCost: "Delivery Cost:",
+                textCOGS: "COGS:",
+                textTotalAmount: "Total Amount:",
+                textProfit: "Profit:",
+                emptyHistoryTitle: "No transactions yet",
+                emptyHistoryText: "Start by adding your first purchase or sale",
+                emptyBrickTitle: "No brick types defined yet",
+                emptyBrickText: "Add your first brick type to manage your inventory",
+                emptyExpensesTitle: "No expenses recorded yet",
+                emptyExpensesText: "Add your first business expense",
+                emptyContactsTitle: "No contacts yet",
+                emptyContactsText: "Contacts will appear automatically from your transactions",
+            },
+            ur: {
+                // Login Screen
+                appTitle: "🧱 اینٹ ٹریڈنگ",
+                loginSubtitle: "محفوظ کاروباری لاگ ان",
+                btnOwner: "مالک",
+                btnSalesman: "سیلزمین",
+                labelUsername: "صارف نام",
+                phUsername: "صارف نام درج کریں",
+                labelPassword: "پاس ورڈ",
+                phPassword: "پاس ورڈ درج کریں",
+                btnLogin: "لاگ ان",
+                loginError: "غلط صارف نام یا پاس ورڈ!",
+                
+                // Salesman Name Field
+                labelSalesmanName: "سیلزمین کا نام",
+                phSalesmanName: "سیلزمین کا نام درج کریں",
+                
+                // UI Headings/Navigation
+                appSubtitle: "کاروباری مینیجر",
+                navDashboard: "ڈیش بورڈ",
+                navManageBricks: "اینٹیں سنبھالیں",
+                navPurchase: "خریداری",
+                navSale: "فروخت",
+                navExpenses: "اخراجات",
+                navContacts: "رابطے",
+                navReports: "رپورٹس",
+                navHistory: "تاریخ",
+                
+                // Dashboard
+                dashRevenue: "کل آمدنی",
+                dashCogs: "فروخت شدہ سامان کی لاگت",
+                dashNetProfit: "خالص منافع/نقصان",
+                dashStock: "اسٹاک میں کل اینٹیں",
+                dashInvestment: "اسٹاک میں سرمایہ کاری",
+                dashTotalPurchased: "خریدی گئی اینٹیں",
+                dashTotalSold: "بیچی گئی اینٹیں",
+                dashExpenses: "کل اخراجات",
+
+                // Expenses
+                btnAddNewExpense: "+ نیا خرچہ شامل کریں",
+                h3AddNewExpense: "نیا خرچہ شامل کریں",
+                labelExpenseCategory: "خرچے کی قسم",
+                optSelectCategory: "قسم منتخب کریں",
+                optUtility: "بجلی/پانی کے بل",
+                optRent: "کرایہ",
+                optSalary: "تنخواہیں",
+                optTransport: "ٹرانسپورٹ",
+                optMaintenance: "مرمت",
+                optOffice: "دفتر کا سامان",
+                optOther: "دیگر",
+                labelExpenseDescription: "تفصیل",
+                phExpenseDescription: "مثلاً: جولائی کا بجلی کا بل، ملازم کی تنخواہ",
+                labelExpenseAmount: "رقم (روپے)",
+                phExpenseAmount: "رقم درج کریں",
+                labelExpenseDate: "تاریخ",
+                labelExpenseNotes: "نوٹس",
+                phExpenseNotes: "اضافی نوٹس یا تفصیلات",
+                alertExpenseAdded: "خرچہ کامیابی سے شامل ہو گیا!",
+                confirmDeleteExpense: "کیا آپ واقعی یہ خرچہ حذف کرنا چاہتے ہیں؟",
+                alertExpenseDeleted: "خرچہ کامیابی سے حذف ہو گیا!",
+                thCategory: "قسم",
+                thPercentage: "فیصد",
+                thCount: "تعداد",
+
+                // Customer Details
+                h4CustomerDetails: "گاہک کی تفصیلات",
+                h4SaleDetails: "فروخت کی تفصیلات",
+                labelCustomerPhone: "فون نمبر",
+                phCustomerPhone: "فون نمبر درج کریں",
+                labelCustomerAddress: "پتہ",
+                phCustomerAddress: "ڈیلیوری کا پتہ درج کریں",
+                labelCustomerDescription: "تفصیل/نوٹس",
+                phCustomerDescription: "کوئی خاص نوٹس یا ضروریات",
+
+                // Contacts
+                tabCustomers: "گاہک",
+                tabSuppliers: "سپلائرز",
+                thCustomer: "گاہک",
+                thSupplier: "سپلائر",
+                thTotalPurchases: "کل خریداری",
+                thTotalSpent: "کل خرچ",
+                thLastTransaction: "آخری لین دین",
+
+                // Reports
+                reportsMonthly: "ماہانہ کارکردگی",
+                reportsBrickTypes: "اینٹ کی قسم کی کارکردگی",
+                reportsExpenses: "خرچے کا تجزیہ",
+                reportsTopCustomers: "بہترین گاہک",
+                thBrickType: "اینٹ کی قسم",
+                thSold: "فروخت",
+                thRevenue: "آمدنی",
+                thProfit: "منافع",
+                thProfitMargin: "منافع کا تناسب",
+                thPurchases: "خریداری",
+                thAmount: "رقم",
+                thLastPurchase: "آخری خریداری",
+                btnExportPDF: "PDF برآمد کریں",
+                btnPrint: "پرنٹ رپورٹ",
+                btnApply: "لاگو کریں",
+                btnReset: "دوبارہ ترتیب دیں",
+
+                // History
+                btnExport: "ڈیٹا برآمد کریں",
+                btnImport: "ڈیٹا درآمد کریں",
+                btnBackup: "بیک اپ ڈاؤن لوڈ کریں",
+                phSearchHistory: "لین دین تلاش کریں...",
+                optAll: "سب",
+                optPurchases: "خریداری",
+                optSales: "فروخت",
+                optExpenses: "اخراجات",
+                optAllBricks: "سب اینٹ کی قسمیں",
+
+                // Manage Bricks
+                btnAddNewBrick: "+ نئی اینٹ شامل کریں",
+                h3AddNewBrick: "نئی اینٹ کی قسم شامل کریں",
+                labelBrickTypeName: "اینٹ کی قسم کا نام",
+                phBrickTypeName: "مثلاً: لال اینٹ، فلائی ایش اینٹ",
+                labelInitialStock: "ابتدائی اسٹاک (عدد)",
+                phInitialStock: "ابتدائی تعداد درج کریں",
+                labelAvgPurchasePrice: "ابتدائی اوسط خریداری قیمت (روپے)",
+                phAvgPurchasePrice: "اوسط خریداری قیمت درج کریں",
+                labelAvgSalePrice: "اوسط فروخت قیمت (روپے)",
+                phAvgSalePrice: "اوسط فروخت قیمت درج کریں",
+                
+                // Purchase/Sale Forms
+                labelFactoryName: "فیکٹری کا نام",
+                phFactoryName: "فیکٹری کا نام درج کریں",
+                labelCustomerName: "گاہک کا نام",
+                phCustomerName: "گاہک کا نام درج کریں",
+                labelBrickType: "اینٹ کی قسم",
+                optSelectBrickType: "اینٹ کی قسم منتخب کریں",
+                labelQuantity: "تعداد (عدد)",
+                phEnterQuantity: "تعداد درج کریں",
+                labelPricePerBrick: "فی اینٹ قیمت (روپے)",
+                phEnterPrice: "فی اینٹ قیمت درج کریں",
+                labelTransportCost: "ٹرانسپورٹ کا خرچہ (روپے)",
+                phEnterTransportCost: "ٹرانسپورٹ کا خرچہ درج کریں",
+                labelSellingPrice: "فی اینٹ فروخت قیمت (روپے)",
+                phEnterSellingPrice: "فی اینٹ فروخت قیمت درج کریں",
+                labelDeliveryCost: "ڈیلیوری کا خرچہ (روپے)",
+                phEnterDeliveryCost: "ڈیلیوری کا خرچہ درج کریں",
+                btnAddNewPurchase: "خریداری شامل کریں",
+                btnAddNewSale: "فروخت شامل کریں",
+                btnCancel: "منسوخ کریں",
+
+                // History
+                btnClearAll: "تمام ڈیٹا صاف کریں",
+                
+                // Dynamic/Alerts
+                alertNoBrickType: "لین دین شامل کرنے سے پہلے، براہ کرم **اینٹیں سنبھالیں** ٹیب میں کم از کم ایک **اینٹ کی قسم** کی وضاحت کریں۔",
+                alertStockPriceNonNegative: "اسٹاک اور قیمتیں غیر منفی ہونی چاہئیں۔",
+                alertNameNotEmpty: "اینٹ کی قسم کا نام خالی نہیں ہو سکتا!",
+                alertNameExists: "اس نام کی اینٹ کی قسم پہلے سے موجود ہے!",
+                alertBrickTypeAdded: (name) => `اینٹ کی قسم "${name}" کامیابی سے شامل ہو گئی!`,
+                alertCannotDeleteStock: (name) => `"${name}" کو حذف نہیں کر سکتے۔ حذف کرنے سے پہلے اسٹاک صفر (0) ہونا چاہیے۔`,
+                confirmDeleteBrickType: (name) => `کیا آپ واقعی اینٹ کی قسم: ${name} کو حذف کرنا چاہتے ہیں؟ اس کارروائی کو واپس نہیں کیا جا سکتا۔`,
+                alertBrickTypeDeleted: (name) => `اینٹ کی قسم "${name}" کامیابی سے حذف ہو گئی!`,
+                alertQtyPricePositive: "تعداد اور فی اینٹ قیمت صفر سے زیادہ ہونی چاہیے۔",
+                alertSelectBrickType: "براہ کرم ایک اینٹ کی قسم منتخب کریں!",
+                alertPurchaseAdded: "خریداری کامیابی سے شامل ہو گئی! اوسط خریداری قیمت اپ ڈیٹ کر دی گئی ہے۔",
+                alertNotEnoughStock: (name, available) => `"${name}" کے لیے کافی اسٹاک نہیں ہے! دستیاب: ${available} عدد۔`,
+                alertSaleAdded: "فروخت کامیابی سے شامل ہو گئی!",
+                alertTransactionNotFound: "لین دین نہیں ملا!",
+                alertBrickTypeNotFound: "خرابی: متعلقہ اینٹ کی قسم نہیں ملی۔ لین دین کو محفوظ طریقے سے حذف نہیں کیا جا سکتا۔",
+                confirmDeleteTransaction: (type) => `کیا آپ واقعی اس ${type === 'purchase' ? 'خریداری' : 'فروخت'} کے لین دین کو حذف کرنا چاہتے ہیں؟ اس سے اسٹاک کی تبدیلیاں واپس ہو جائیں گی۔`,
+                alertCannotDeletePurchase: (name) => `خریداری حذف نہیں کی جا سکتی! اسے حذف کرنے سے ${name} کا اسٹاک منفی ہو جائے گا۔ پہلے کم اینٹیں فروخت کریں۔`,
+                alertTransactionDeleted: (type) => `${type === 'purchase' ? 'خریداری' : 'فروخت'} کا لین دین کامیابی سے حذف ہو گیا۔ انوینٹری اپ ڈیٹ کر دی گئی ہے۔`,
+                confirmClearAllData: "کیا آپ واقعی تمام ڈیٹا صاف کرنا چاہتے ہیں؟ اس کارروائی کو واپس نہیں کیا جا سکتا۔",
+                alertDataCleared: "تمام ڈیٹا کامیابی سے صاف ہو گیا!",
+                alertLowStock: (name, stock) => `کم اسٹاک انتباہ: ${name} کے پاس صرف ${stock} عدد باقی ہیں!`,
+                alertExportSuccess: "ڈیٹا کامیابی سے برآمد ہو گیا!",
+                alertImportSuccess: "ڈیٹا کامیابی سے درآمد ہو گیا!",
+                alertBackupSuccess: "بیک اپ کامیابی سے ڈاؤن لوڈ ہو گیا!",
+                alertImportError: "ڈیٹا درآمد کرنے میں خرابی۔ براہ کرم فائل کی شکل چیک کریں۔",
+                confirmImport: "ڈیٹا درآمد کرنے سے موجودہ تمام ڈیٹا تبدیل ہو جائے گا۔ کیا آپ واقعی یہ کرنا چاہتے ہیں؟",
+                alertAccessDenied: "رسائی منع ہے! آپ کو اس کارروائی کی اجازت نہیں ہے۔",
+                
+                // Dynamic Text Parts
+                textPieces: "عدد",
+                textAvgPurchasePrice: "اوسط خریداری قیمت (WAC):",
+                textAvgSalePrice: "اوسط فروخت قیمت:",
+                textTotalUnitsPurchased: "کل خریدی گئی تعداد:",
+                textTotalCost: "کل لاگت:",
+                textAdded: "شامل شدہ:",
+                textStock: "اسٹاک:",
+                textPurchase: "خریداری",
+                textSale: "فروخت",
+                textExpense: "خرچہ",
+                textFactory: "فیکٹری",
+                textCustomer: "گاہک",
+                textSalesman: "سیلزمین",
+                textQuantity: "تعداد:",
+                textPricePerBrick: "فی اینٹ قیمت:",
+                textTransportCost: "ٹرانسپورٹ کا خرچہ:",
+                textDeliveryCost: "ڈیلیوری کا خرچہ:",
+                textCOGS: "COGS:",
+                textTotalAmount: "کل رقم:",
+                textProfit: "منافع:",
+                emptyHistoryTitle: "ابھی تک کوئی لین دین نہیں ہوا",
+                emptyHistoryText: "اپنی پہلی خریداری یا فروخت شامل کر کے آغاز کریں",
+                emptyBrickTitle: "ابھی تک کوئی اینٹ کی قسم واضح نہیں کی گئی",
+                emptyBrickText: "اپنی انوینٹری کا انتظام کرنے کے لیے اپنی پہلی اینٹ کی قسم شامل کریں",
+                emptyExpensesTitle: "ابھی تک کوئی خرچہ ریکارڈ نہیں ہوا",
+                emptyExpensesText: "اپنا پہلا کاروباری خرچہ شامل کریں",
+                emptyContactsTitle: "ابھی تک کوئی رابطے نہیں ہیں",
+                emptyContactsText: "رابطے آپ کے لین دین سے خود بخود ظاہر ہوں گے",
+            }
+        };
+
+        let currentLang = localStorage.getItem('appLang') || 'en';
+        let monthlyChart = null;
+        let reportStartDate = null;
+        let reportEndDate = null;
+        let currentUser = null;
+        let currentUserRole = null;
+
+        // --- User Accounts Data ---
+        const userAccounts = {
+            // Owner account - Haq Bahoo
+            "Haq Bahoo": { 
+                password: "140847", 
+                role: "owner", 
+                name: "Haq Bahoo" 
+            },
+            
+            // Salesman account - Sultani Sahb
+            "Sultani Sahb": { 
+                password: "422786", 
+                role: "salesman", 
+                name: "Sultani Sahb" 
+            }
+        };
+
+        // --- Data Initialization ---
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        let brickTypes = JSON.parse(localStorage.getItem('brickTypes')) || [];
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+        // --- Function to Save All Data ---
+        function saveData() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            localStorage.setItem('brickTypes', JSON.stringify(brickTypes));
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            checkLowStockAlerts();
+        }
+
+        // --- Login System ---
+        function selectUserType(type) {
+            document.getElementById('ownerBtn').classList.remove('active');
+            document.getElementById('salesmanBtn').classList.remove('active');
+            document.getElementById(type + 'Btn').classList.add('active');
+        }
+
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const userType = document.querySelector('.user-type-btn.active').id.replace('Btn', '');
+            
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.style.display = 'none';
+            
+            // Validate credentials
+            if (userAccounts[username] && userAccounts[username].password === password) {
+                const userRole = userAccounts[username].role;
+                
+                // Check if user type matches role
+                if ((userType === 'owner' && userRole === 'owner') || 
+                    (userType === 'salesman' && userRole === 'salesman')) {
+                    
+                    currentUser = username;
+                    currentUserRole = userRole;
+                    
+                    // Hide login, show app
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('appContainer').style.display = 'block';
+                    
+                    // Update UI with user info
+                    document.getElementById('currentUserName').textContent = userAccounts[username].name;
+                    document.getElementById('currentUserRole').textContent = 
+                        userRole === 'owner' ? 'Owner' : 'Salesman';
+                    
+                    // Update UI based on role
+                    updateUIForUserRole();
+                    
+                    // Initialize app
+                    updateAllUI();
+                    
+                    // Show welcome notification
+                    const t = translations[currentLang];
+                    showNotification(`Welcome, ${userAccounts[username].name}!`, 'success');
+                    
+                } else {
+                    // Wrong user type for this account
+                    const t = translations[currentLang];
+                    errorDiv.textContent = "Please select correct user type for this account.";
+                    errorDiv.style.display = 'block';
+                }
+            } else {
+                // Invalid credentials
+                errorDiv.style.display = 'block';
+            }
+        };
+
+        function updateUIForUserRole() {
+            const isOwner = currentUserRole === 'owner';
+            
+            // Show/hide tabs based on role
+            const ownerTabs = document.querySelectorAll('.owner-only');
+            ownerTabs.forEach(tab => {
+                tab.style.display = isOwner ? 'flex' : 'none';
+            });
+            
+            // Show/hide history controls based on role
+            document.getElementById('ownerControls').style.display = isOwner ? 'flex' : 'none';
+            document.getElementById('clearAllBtn').style.display = isOwner ? 'block' : 'none';
+            
+            // Auto-fill salesman name in sale form
+            if (!isOwner) {
+                document.getElementById('salesmanName').value = userAccounts[currentUser].name;
+                document.getElementById('salesmanName').readOnly = true;
+            } else {
+                document.getElementById('salesmanName').readOnly = false;
+            }
+            
+            // Salesman can only see Sale and History tabs
+            if (!isOwner) {
+                // Hide all tabs except Sale and History
+                const allTabs = document.querySelectorAll('.nav-tab');
+                allTabs.forEach(tab => {
+                    if (!tab.textContent.includes('Sale') && !tab.textContent.includes('History')) {
+                        tab.style.display = 'none';
+                    }
+                });
+                
+                // Switch to Sale tab if on restricted tab
+                const currentTab = document.querySelector('.tab-content.active');
+                if (currentTab && !['sale', 'history'].includes(currentTab.id)) {
+                    showTab('sale', { target: document.querySelector('.nav-tab[onclick*="sale"]') });
+                }
+            }
+        }
+
+        function logout() {
+            const t = translations[currentLang];
+            if (confirm(currentLang === 'en' ? 'Are you sure you want to logout?' : 'کیا آپ واقعی لاگ آؤٹ کرنا چاہتے ہیں؟')) {
+                currentUser = null;
+                currentUserRole = null;
+                
+                // Clear login form
+                document.getElementById('loginForm').reset();
+                document.getElementById('loginError').style.display = 'none';
+                
+                // Show login, hide app
+                document.getElementById('loginScreen').style.display = 'block';
+                document.getElementById('appContainer').style.display = 'none';
+            }
+        }
+
+        // --- Language System ---
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.body.className = lang;
+            localStorage.setItem('appLang', lang);
+            
+            // Update login screen buttons
+            document.getElementById('langEnLogin').classList.remove('active');
+            document.getElementById('langUrLogin').classList.remove('active');
+            
+            // Update main app buttons
+            document.getElementById('langEn').classList.remove('active');
+            document.getElementById('langUr').classList.remove('active');
+            
+            if (lang === 'en') {
+                document.getElementById('langEnLogin').classList.add('active');
+                document.getElementById('langEn').classList.add('active');
+            } else if (lang === 'ur') {
+                document.getElementById('langUrLogin').classList.add('active');
+                document.getElementById('langUr').classList.add('active');
+            }
+
+            // Update all translatable text
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-translate-placeholder');
+                if (translations[lang][key]) {
+                    element.setAttribute('placeholder', translations[lang][key]);
+                }
+            });
+            
+            // Update dynamic content
+            if (currentUser) {
+                updateAllUI();
+            }
+        }
+
+        // Load data on page load
+        window.onload = function() {
+            const savedLang = localStorage.getItem('appLang') || 'en';
+            setLanguage(savedLang);
+            
+            // Set default dates for reports
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            
+            // Setup event listeners
+            document.getElementById('searchHistory').addEventListener('input', updateHistory);
+            document.getElementById('filterType').addEventListener('change', updateHistory);
+            document.getElementById('filterBrickType').addEventListener('change', updateHistory);
+            
+            // Setup import file listener
+            document.getElementById('importFile').addEventListener('change', handleFileImport);
+        };
+
+        function updateAllUI() {
+            updateDashboard();
+            updateHistory();
+            updateBrickTypeList(); 
+            populateBrickTypeDropdowns();
+            updateExpensesList();
+            updateContacts();
+            updateReports();
+            checkBrickTypeDependency();
+        }
+
+        function showTab(tabName, event) {
+            // Check if user has permission for this tab
+            if (currentUserRole === 'salesman' && 
+                !['sale', 'history'].includes(tabName)) {
+                const t = translations[currentLang];
+                showNotification(t.alertAccessDenied, 'danger');
+                return;
+            }
+
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => tab.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            
+            if (event && event.target) { 
+                event.target.classList.add('active');
+            }
+
+            if (tabName === 'dashboard') {
+                updateDashboard();
+            } else if (tabName === 'history') {
+                updateHistory();
+            } else if (tabName === 'manageBricks') { 
+                updateBrickTypeList();
+            } else if (tabName === 'purchase' || tabName === 'sale') { 
+                populateBrickTypeDropdowns();
+                checkBrickTypeDependency();
+            } else if (tabName === 'expenses') {
+                updateExpensesList();
+            } else if (tabName === 'contacts') {
+                updateContacts();
+            } else if (tabName === 'reports') {
+                updateReports();
+            }
+        }
+        
+        function checkBrickTypeDependency() {
+            const warningPurchase = document.getElementById('purchaseWarning');
+            const formPurchase = document.getElementById('purchaseForm');
+            const warningSale = document.getElementById('saleWarning');
+            const formSale = document.getElementById('saleForm');
+
+            if (brickTypes.length === 0) {
+                warningPurchase.style.display = 'block';
+                formPurchase.style.display = 'none';
+                warningSale.style.display = 'block';
+                formSale.style.display = 'none';
+            } else {
+                warningPurchase.style.display = 'none';
+                formPurchase.style.display = 'block';
+                warningSale.style.display = 'none';
+                formSale.style.display = 'block';
+            }
+        }
+
+        // --- Brick Type Management ---
+        function showBrickTypeForm() {
+            document.getElementById('addBrickTypeForm').style.display = 'block';
+            document.getElementById('brickTypeForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideBrickTypeForm() {
+            document.getElementById('addBrickTypeForm').style.display = 'none';
+            document.getElementById('brickTypeForm').reset();
+        }
+
+        document.getElementById('brickTypeForm').onsubmit = function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('brickTypeName').value.trim();
+            const initialStock = parseInt(document.getElementById('initialStock').value);
+            const avgPurchasePrice = parseFloat(document.getElementById('avgPurchasePrice').value);
+            const avgSalePrice = parseFloat(document.getElementById('avgSalePrice').value);
+            const t = translations[currentLang];
+            
+            if (initialStock < 0 || avgPurchasePrice < 0 || avgSalePrice < 0) {
+                alert(t.alertStockPriceNonNegative);
+                return;
+            }
+
+            if (!name) {
+                alert(t.alertNameNotEmpty);
+                return;
+            }
+
+            if (brickTypes.some(type => type.name.toLowerCase() === name.toLowerCase())) {
+                alert(t.alertNameExists);
+                return;
+            }
+            
+            const initialCost = initialStock * avgPurchasePrice;
+
+            const newBrickType = {
+                id: Date.now(),
+                name: name,
+                stock: initialStock, 
+                avgPurchasePrice: avgPurchasePrice,
+                avgSalePrice: avgSalePrice,
+                totalUnitsPurchased: initialStock, 
+                totalCostPurchased: initialCost,
+                createdDate: new Date().toLocaleDateString()
+            };
+
+            brickTypes.push(newBrickType);
+            saveData(); 
+            hideBrickTypeForm();
+            updateAllUI(); 
+            showNotification(t.alertBrickTypeAdded(name), 'success');
+        };
+        
+        function deleteBrickType(id, name) {
+            const brickType = brickTypes.find(type => type.id === id);
+            const t = translations[currentLang];
+            
+            if (brickType && brickType.stock > 0) {
+                alert(t.alertCannotDeleteStock(name));
+                return;
+            }
+            
+            if (confirm(t.confirmDeleteBrickType(name))) {
+                brickTypes = brickTypes.filter(type => type.id !== id);
+                
+                saveData();
+                updateAllUI();
+                showNotification(t.alertBrickTypeDeleted(name), 'success');
+            }
+        }
+
+        function updateBrickTypeList() {
+            const brickTypeListDiv = document.getElementById('brickTypeList');
+            const t = translations[currentLang];
+
+            if (brickTypes.length === 0) {
+                brickTypeListDiv.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-box-open"></i>
+                        <h3>${t.emptyBrickTitle}</h3>
+                        <p>${t.emptyBrickText}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            brickTypeListDiv.innerHTML = brickTypes.map(type => `
+                <div class="brick-type-card">
+                    <div class="brick-type-header">
+                        <div class="brick-type-name"><i class="fa-solid fa-industry"></i> ${type.name}</div>
+                        <div class="brick-type-stock">${type.stock} ${t.textPieces}</div>
+                    </div>
+                    <div class="brick-type-details">
+                        <strong>${t.textAvgPurchasePrice}</strong> Rs.${type.avgPurchasePrice.toFixed(2)}<br>
+                        <strong>${t.textAvgSalePrice}</strong> Rs.${type.avgSalePrice.toFixed(2)}<br>
+                        <hr style="margin: 5px 0; border-style: dotted; border-color: #eee;">
+                        <strong>${t.textTotalUnitsPurchased}</strong> ${type.totalUnitsPurchased} <br>
+                        <strong>${t.textTotalCost}</strong> Rs.${type.totalCostPurchased.toFixed(2)} <br>
+                        <span style="font-size: 11px;">${t.textAdded} ${type.createdDate}</span>
+                    </div>
+                    <div class="brick-type-actions">
+                        <button class="btn btn-danger btn-small" onclick="deleteBrickType(${type.id}, '${type.name}')" ${type.stock > 0 ? 'disabled' : ''}>
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populateBrickTypeDropdowns() {
+            const purchaseSelect = document.getElementById('purchaseBrickType');
+            const saleSelect = document.getElementById('saleBrickType');
+            const filterSelect = document.getElementById('filterBrickType');
+            const t = translations[currentLang];
+
+            purchaseSelect.innerHTML = `<option value="">${t.optSelectBrickType}</option>`;
+            saleSelect.innerHTML = `<option value="">${t.optSelectBrickType}</option>`;
+            filterSelect.innerHTML = `<option value="all">${t.optAllBricks}</option>`;
+
+            brickTypes.forEach(type => {
+                const optionPurchase = document.createElement('option');
+                optionPurchase.value = type.name;
+                optionPurchase.textContent = type.name;
+                purchaseSelect.appendChild(optionPurchase);
+
+                const optionSale = document.createElement('option');
+                optionSale.value = type.name;
+                optionSale.textContent = type.name;
+                saleSelect.appendChild(optionSale);
+
+                const optionFilter = document.createElement('option');
+                optionFilter.value = type.name;
+                optionFilter.textContent = type.name;
+                filterSelect.appendChild(optionFilter);
+            });
+        }
+
+        // --- Purchase Form ---
+        document.getElementById('purchaseForm').onsubmit = function(e) {
+            e.preventDefault();
+
+            const factoryName = document.getElementById('factoryName').value;
+            const brickTypeName = document.getElementById('purchaseBrickType').value;
+            const quantity = parseInt(document.getElementById('purchaseQuantity').value);
+            const pricePerBrick = parseFloat(document.getElementById('purchasePrice').value);
+            const transportCost = parseFloat(document.getElementById('transportCost').value) || 0;
+            const t = translations[currentLang];
+            
+            if (quantity <= 0 || pricePerBrick <= 0) {
+                alert(t.alertQtyPricePositive);
+                return;
+            }
+
+            if (!brickTypeName) {
+                alert(t.alertSelectBrickType);
+                return;
+            }
+
+            const totalPurchaseCost = (quantity * pricePerBrick) + transportCost;
+
+            const transaction = {
+                id: Date.now(),
+                type: 'purchase',
+                date: new Date().toLocaleDateString(),
+                factoryName,
+                customerName: null,
+                brickType: brickTypeName, 
+                quantity,
+                pricePerBrick, 
+                transportCost,
+                deliveryCost: 0,
+                totalAmount: totalPurchaseCost,
+                addedBy: currentUser
+            };
+
+            transactions.push(transaction);
+
+            const targetBrickType = brickTypes.find(type => type.name === brickTypeName);
+            if (targetBrickType) {
+                const newTotalUnits = targetBrickType.totalUnitsPurchased + quantity;
+                const newTotalCost = targetBrickType.totalCostPurchased + totalPurchaseCost;
+                
+                const newAvgPurchasePrice = newTotalUnits > 0 ? newTotalCost / newTotalUnits : 0;
+
+                targetBrickType.stock += quantity;
+                targetBrickType.totalUnitsPurchased = newTotalUnits;
+                targetBrickType.totalCostPurchased = newTotalCost;
+                targetBrickType.avgPurchasePrice = newAvgPurchasePrice;
+            } 
+
+            saveData(); 
+            document.getElementById('purchaseForm').reset();
+            showTab('dashboard', { target: document.querySelector('.nav-tab[onclick*="dashboard"]') });
+            showNotification(t.alertPurchaseAdded, 'success');
+            updateAllUI();
+        };
+
+        // --- Sale Form ---
+        document.getElementById('saleForm').onsubmit = function(e) {
+            e.preventDefault();
+
+            const salesmanName = document.getElementById('salesmanName').value;
+            const customerName = document.getElementById('customerName').value;
+            const customerPhone = document.getElementById('customerPhone').value;
+            const customerAddress = document.getElementById('customerAddress').value;
+            const customerDescription = document.getElementById('customerDescription').value;
+            const brickTypeName = document.getElementById('saleBrickType').value; 
+            const quantity = parseInt(document.getElementById('saleQuantity').value);
+            const pricePerBrick = parseFloat(document.getElementById('salePrice').value);
+            const deliveryCost = parseFloat(document.getElementById('deliveryCost').value) || 0;
+            const t = translations[currentLang];
+            
+            if (quantity <= 0 || pricePerBrick <= 0) {
+                alert(t.alertQtyPricePositive);
+                return;
+            }
+
+            if (!brickTypeName) {
+                alert(t.alertSelectBrickType);
+                return;
+            }
+
+            const targetBrickType = brickTypes.find(type => type.name === brickTypeName);
+            if (!targetBrickType || quantity > targetBrickType.stock) {
+                alert(t.alertNotEnoughStock(brickTypeName, targetBrickType ? targetBrickType.stock : 0));
+                return;
+            }
+
+            const totalSaleRevenue = (quantity * pricePerBrick) - deliveryCost;
+            const cogs = targetBrickType.avgPurchasePrice * quantity;
+
+            const transaction = {
+                id: Date.now(),
+                type: 'sale',
+                date: new Date().toLocaleDateString(),
+                factoryName: null,
+                salesmanName: salesmanName,
+                customerName,
+                customerPhone,
+                customerAddress,
+                customerDescription,
+                brickType: brickTypeName, 
+                quantity,
+                pricePerBrick, 
+                transportCost: 0,
+                deliveryCost,
+                totalAmount: totalSaleRevenue, 
+                cogs: cogs,
+                addedBy: currentUser
+            };
+
+            transactions.push(transaction);
+
+            if (targetBrickType) {
+                targetBrickType.stock -= quantity;
+            }
+
+            saveData(); 
+            document.getElementById('saleForm').reset();
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '';
+            document.getElementById('customerAddress').value = '';
+            document.getElementById('customerDescription').value = '';
+            // Keep salesman name for next entry
+            if (currentUserRole === 'salesman') {
+                document.getElementById('salesmanName').value = userAccounts[currentUser].name;
+            }
+            
+            showNotification(t.alertSaleAdded, 'success');
+            updateAllUI(); 
+        };
+
+        // --- Expenses Management ---
+        function showExpenseForm() {
+            document.getElementById('addExpenseForm').style.display = 'block';
+            document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('expenseForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideExpenseForm() {
+            document.getElementById('addExpenseForm').style.display = 'none';
+            document.getElementById('expenseForm').reset();
+        }
+
+        document.getElementById('expenseForm').onsubmit = function(e) {
+            e.preventDefault();
+
+            const category = document.getElementById('expenseCategory').value;
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const date = document.getElementById('expenseDate').value;
+            const notes = document.getElementById('expenseNotes').value;
+            const t = translations[currentLang];
+
+            if (!category || !description || amount <= 0) {
+                alert("Please fill all required fields with valid values.");
+                return;
+            }
+
+            const expense = {
+                id: Date.now(),
+                category: category,
+                description: description,
+                amount: amount,
+                date: date,
+                notes: notes,
+                addedBy: currentUser,
+                addedDate: new Date().toLocaleDateString()
+            };
+
+            expenses.push(expense);
+            saveData();
+            hideExpenseForm();
+            updateExpensesList();
+            updateDashboard();
+            showNotification(t.alertExpenseAdded, 'success');
+        };
+
+        function deleteExpense(id) {
+            const t = translations[currentLang];
+            if (confirm(t.confirmDeleteExpense)) {
+                expenses = expenses.filter(expense => expense.id !== id);
+                saveData();
+                updateExpensesList();
+                updateDashboard();
+                showNotification(t.alertExpenseDeleted, 'success');
+            }
+        }
+
+        function updateExpensesList() {
+            const expenseListDiv = document.getElementById('expenseList');
+            const t = translations[currentLang];
+
+            if (expenses.length === 0) {
+                expenseListDiv.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                        <h3>${t.emptyExpensesTitle}</h3>
+                        <p>${t.emptyExpensesText}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedExpenses = [...expenses].reverse();
+
+            expenseListDiv.innerHTML = sortedExpenses.map(expense => {
+                const categoryClass = `expense-${expense.category}`;
+                const categoryText = t[`opt${expense.category.charAt(0).toUpperCase() + expense.category.slice(1)}`] || expense.category;
+                
+                return `
+                    <div class="transaction-item expense">
+                        <div class="transaction-header">
+                            <span class="transaction-type expense">
+                                <i class="fa-solid fa-money-bill-wave"></i> ${t.textExpense}
+                            </span>
+                            <span class="transaction-date">${expense.date}</span>
+                        </div>
+                        <div class="transaction-details">
+                            <div><strong>${t.labelExpenseCategory}:</strong> 
+                                <span class="expense-category-badge ${categoryClass}">${categoryText}</span>
+                            </div>
+                            <div><strong>${t.labelExpenseDescription}:</strong> ${expense.description}</div>
+                            <div><strong>${t.labelExpenseAmount}:</strong> Rs.${expense.amount.toFixed(2)}</div>
+                            ${expense.notes ? `<div><strong>${t.labelExpenseNotes}:</strong> ${expense.notes}</div>` : ''}
+                            <div style="font-size: 11px; color: var(--color-subtext); margin-top: 5px;">
+                                Added by: ${userAccounts[expense.addedBy]?.name || expense.addedBy} on ${expense.addedDate}
+                            </div>
+                        </div>
+                        <div class="transaction-actions">
+                            <button class="btn btn-danger btn-small" style="width: auto;" onclick="deleteExpense(${expense.id})">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function calculateTotalExpenses() {
+            return expenses.reduce((total, expense) => total + expense.amount, 0);
+        }
+        
+        function deleteTransaction(id) {
+            // Check if user is salesman (no delete permission)
+            if (currentUserRole === 'salesman') {
+                const t = translations[currentLang];
+                showNotification(t.alertAccessDenied, 'danger');
+                return;
+            }
+            
+            const transactionIndex = transactions.findIndex(t => t.id === id);
+            const t = translations[currentLang];
+            
+            if (transactionIndex === -1) {
+                alert(t.alertTransactionNotFound);
+                return;
+            }
+
+            const transactionToDelete = transactions[transactionIndex];
+            const brickTypeName = transactionToDelete.brickType;
+            const targetBrickType = brickTypes.find(type => type.name === brickTypeName);
+
+            if (transactionToDelete.type !== 'expense' && !targetBrickType) {
+                alert(t.alertBrickTypeNotFound);
+                return;
+            }
+
+            if (confirm(t.confirmDeleteTransaction(transactionToDelete.type))) {
+                if (transactionToDelete.type === 'purchase') {
+                    const oldTotalUnits = targetBrickType.totalUnitsPurchased;
+                    const oldTotalCost = targetBrickType.totalCostPurchased;
+                    const purchaseQuantity = transactionToDelete.quantity;
+                    const purchaseCost = transactionToDelete.totalAmount;
+
+                    if (targetBrickType.stock < purchaseQuantity) {
+                        alert(t.alertCannotDeletePurchase(brickTypeName));
+                        return;
+                    }
+
+                    const newTotalUnits = oldTotalUnits - purchaseQuantity;
+                    const newTotalCost = oldTotalCost - purchaseCost;
+                    const newAvgPurchasePrice = newTotalUnits > 0 ? newTotalCost / newTotalUnits : 0;
+                    
+                    targetBrickType.stock -= purchaseQuantity;
+                    targetBrickType.totalUnitsPurchased = newTotalUnits;
+                    targetBrickType.totalCostPurchased = newTotalCost;
+                    targetBrickType.avgPurchasePrice = newAvgPurchasePrice;
+                } else if (transactionToDelete.type === 'sale') {
+                    targetBrickType.stock += transactionToDelete.quantity;
+                }
+                
+                transactions.splice(transactionIndex, 1);
+                saveData();
+                updateAllUI();
+                showNotification(t.alertTransactionDeleted(transactionToDelete.type), 'success');
+            }
+        }
+
+        // --- History Search & Filter ---
+        function updateHistory() {
+            const historyDiv = document.getElementById('transactionHistory');
+            const t = translations[currentLang];
+            const searchTerm = document.getElementById('searchHistory').value.toLowerCase();
+            const filterType = document.getElementById('filterType').value;
+            const filterBrickType = document.getElementById('filterBrickType').value;
+
+            // Combine transactions and expenses for history view
+            let allTransactions = [...transactions];
+            
+            // Add expenses to transactions list for history view
+            expenses.forEach(expense => {
+                allTransactions.push({
+                    id: expense.id,
+                    type: 'expense',
+                    date: expense.date,
+                    description: expense.description,
+                    totalAmount: expense.amount,
+                    category: expense.category,
+                    notes: expense.notes,
+                    addedBy: expense.addedBy
+                });
+            });
+
+            let filteredTransactions = allTransactions.filter(transaction => {
+                // Search filter
+                const matchesSearch = searchTerm === '' || 
+                    transaction.factoryName?.toLowerCase().includes(searchTerm) ||
+                    transaction.customerName?.toLowerCase().includes(searchTerm) ||
+                    transaction.salesmanName?.toLowerCase().includes(searchTerm) ||
+                    transaction.brickType?.toLowerCase().includes(searchTerm) ||
+                    transaction.description?.toLowerCase().includes(searchTerm) ||
+                    (transaction.type === 'expense' && t[`opt${transaction.category.charAt(0).toUpperCase() + transaction.category.slice(1)}`]?.toLowerCase().includes(searchTerm));
+                
+                // Type filter
+                const matchesType = filterType === 'all' || transaction.type === filterType;
+                
+                // Brick type filter (only for purchase/sale)
+                const matchesBrickType = filterBrickType === 'all' || 
+                    transaction.type === 'expense' || 
+                    transaction.brickType === filterBrickType;
+                
+                return matchesSearch && matchesType && matchesBrickType;
+            });
+
+            if (filteredTransactions.length === 0) {
+                historyDiv.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-receipt"></i>
+                        <h3>${t.emptyHistoryTitle}</h3>
+                        <p>${t.emptyHistoryText}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedTransactions = filteredTransactions.sort((a, b) => b.id - a.id);
+
+            historyDiv.innerHTML = sortedTransactions.map(transaction => {
+                const isPurchase = transaction.type === 'purchase';
+                const isSale = transaction.type === 'sale';
+                const isExpense = transaction.type === 'expense';
+                
+                const typeClass = isPurchase ? 'purchase' : isSale ? 'sale' : 'expense';
+                const typeIcon = isPurchase ? '<i class="fa-solid fa-arrow-down-long"></i>' : 
+                                isSale ? '<i class="fa-solid fa-arrow-up-long"></i>' : 
+                                '<i class="fa-solid fa-money-bill-wave"></i>';
+                
+                const typeText = isPurchase ? t.textPurchase : isSale ? t.textSale : t.textExpense;
+                
+                if (isExpense) {
+                    const categoryClass = `expense-${transaction.category}`;
+                    const categoryText = t[`opt${transaction.category.charAt(0).toUpperCase() + transaction.category.slice(1)}`] || transaction.category;
+                    
+                    return `
+                        <div class="transaction-item ${typeClass}">
+                            <div class="transaction-header">
+                                <span class="transaction-type ${typeClass}">${typeIcon} ${typeText}</span>
+                                <span class="transaction-date">${transaction.date}</span>
+                            </div>
+                            <div class="transaction-details">
+                                <div><strong>${t.labelExpenseCategory}:</strong> 
+                                    <span class="expense-category-badge ${categoryClass}">${categoryText}</span>
+                                </div>
+                                <div><strong>${t.labelExpenseDescription}:</strong> ${transaction.description}</div>
+                                <div><strong>${t.labelExpenseAmount}:</strong> Rs.${transaction.totalAmount.toFixed(2)}</div>
+                                ${transaction.notes ? `<div><strong>${t.labelExpenseNotes}:</strong> ${transaction.notes}</div>` : ''}
+                                <div style="font-size: 11px; color: var(--color-subtext); margin-top: 5px;">
+                                    Added by: ${userAccounts[transaction.addedBy]?.name || transaction.addedBy}
+                                </div>
+                            </div>
+                            ${currentUserRole === 'owner' ? `
+                            <div class="transaction-actions">
+                                <button class="btn btn-danger btn-small" style="width: auto;" onclick="deleteExpense(${transaction.id})">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                } else {
+                    const profitLoss = transaction.totalAmount - (transaction.cogs || 0);
+                    const profitText = isSale 
+                        ? ` | <strong>${t.textProfit}:</strong> <span style="color: ${profitLoss >= 0 ? 'var(--color-success)' : 'var(--color-danger)'};">Rs.${profitLoss.toFixed(2)}</span>`
+                        : '';
+                    
+                    const mainInfo = isPurchase ? transaction.factoryName : transaction.customerName;
+                    
+                    let customerDetails = '';
+                    if (isSale) {
+                        customerDetails = `
+                            <div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin-top: 5px; font-size: 12px;">
+                                ${transaction.salesmanName ? `<div><strong>${t.textSalesman}:</strong> ${transaction.salesmanName}</div>` : ''}
+                                ${transaction.customerPhone ? `<div><strong>Phone:</strong> ${transaction.customerPhone}</div>` : ''}
+                                ${transaction.customerAddress ? `<div><strong>Address:</strong> ${transaction.customerAddress}</div>` : ''}
+                                ${transaction.customerDescription ? `<div><strong>Notes:</strong> ${transaction.customerDescription}</div>` : ''}
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="transaction-item ${typeClass}">
+                            <div class="transaction-header">
+                                <span class="transaction-type ${typeClass}">${typeIcon} ${typeText}</span>
+                                <span class="transaction-date">${transaction.date}</span>
+                            </div>
+                            <div class="transaction-details">
+                                <div><strong>${isPurchase ? t.textFactory : t.textCustomer}:</strong> ${mainInfo}</div>
+                                ${isSale && transaction.salesmanName ? `<div><strong>${t.textSalesman}:</strong> ${transaction.salesmanName}</div>` : ''}
+                                <div><strong>${t.labelBrickType}:</strong> ${transaction.brickType}</div>
+                                <div><strong>${t.textQuantity}:</strong> ${transaction.quantity} ${t.textPieces}</div>
+                                <div><strong>${t.textTotalAmount}:</strong> Rs.${transaction.totalAmount.toFixed(2)}</div>
+                                
+                                ${isPurchase 
+                                    ? transaction.transportCost > 0 ? `<div><strong>${t.textTransportCost}:</strong> Rs.${transaction.transportCost.toFixed(2)}</div>` : ''
+                                    : `<div><strong>${t.textCOGS}:</strong> Rs.${transaction.cogs.toFixed(2)} ${profitText}</div>`
+                                }
+                                ${isSale && transaction.deliveryCost > 0 ? `<div><strong>${t.textDeliveryCost}:</strong> Rs.${transaction.deliveryCost.toFixed(2)}</div>` : ''}
+                                ${customerDetails}
+                                <div style="font-size: 11px; color: var(--color-subtext); margin-top: 5px;">
+                                    Added by: ${userAccounts[transaction.addedBy]?.name || transaction.addedBy}
+                                </div>
+                            </div>
+                            ${currentUserRole === 'owner' ? `
+                            <div class="transaction-actions">
+                                <button class="btn btn-danger btn-small" style="width: auto;" onclick="deleteTransaction(${transaction.id})">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        // --- Contacts Management ---
+        function showContactType(type) {
+            document.getElementById('customersList').style.display = type === 'customers' ? 'block' : 'none';
+            document.getElementById('suppliersList').style.display = type === 'suppliers' ? 'block' : 'none';
+            
+            const subTabs = document.querySelectorAll('.sub-tab');
+            subTabs.forEach(tab => tab.classList.remove('active'));
+            
+            if (type === 'customers') {
+                document.querySelector('.sub-tab[onclick*="customers"]').classList.add('active');
+            } else {
+                document.querySelector('.sub-tab[onclick*="suppliers"]').classList.add('active');
+            }
+        }
+
+        function updateContacts() {
+            const customers = {};
+            const suppliers = {};
+            
+            // Analyze transactions to extract contact information
+            transactions.forEach(transaction => {
+                if (transaction.type === 'sale' && transaction.customerName) {
+                    if (!customers[transaction.customerName]) {
+                        customers[transaction.customerName] = {
+                            name: transaction.customerName,
+                            phone: transaction.customerPhone || '',
+                            address: transaction.customerAddress || '',
+                            totalPurchases: 0,
+                            totalAmount: 0,
+                            lastTransaction: transaction.date,
+                            brickTypes: new Set(),
+                            salesmen: new Set()
+                        };
+                    }
+                    customers[transaction.customerName].totalPurchases += transaction.quantity;
+                    customers[transaction.customerName].totalAmount += transaction.totalAmount;
+                    customers[transaction.customerName].lastTransaction = transaction.date;
+                    customers[transaction.customerName].brickTypes.add(transaction.brickType);
+                    if (transaction.salesmanName) {
+                        customers[transaction.customerName].salesmen.add(transaction.salesmanName);
+                    }
+                    
+                    // Update contact details if new information is available
+                    if (transaction.customerPhone) customers[transaction.customerName].phone = transaction.customerPhone;
+                    if (transaction.customerAddress) customers[transaction.customerName].address = transaction.customerAddress;
+                }
+                
+                if (transaction.type === 'purchase' && transaction.factoryName) {
+                    if (!suppliers[transaction.factoryName]) {
+                        suppliers[transaction.factoryName] = {
+                            name: transaction.factoryName,
+                            totalSupplied: 0,
+                            totalAmount: 0,
+                            lastTransaction: transaction.date,
+                            brickTypes: new Set()
+                        };
+                    }
+                    suppliers[transaction.factoryName].totalSupplied += transaction.quantity;
+                    suppliers[transaction.factoryName].totalAmount += transaction.totalAmount;
+                    suppliers[transaction.factoryName].lastTransaction = transaction.date;
+                    suppliers[transaction.factoryName].brickTypes.add(transaction.brickType);
+                }
+            });
+
+            updateContactList('customers', customers);
+            updateContactList('suppliers', suppliers);
+        }
+
+        function updateContactList(type, contacts) {
+            const container = document.getElementById(type + 'List');
+            const t = translations[currentLang];
+            
+            if (Object.keys(contacts).length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-address-book"></i>
+                        <h3>${t.emptyContactsTitle}</h3>
+                        <p>${t.emptyContactsText}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const contactsArray = Object.values(contacts).sort((a, b) => b.totalAmount - a.totalAmount);
+            
+            container.innerHTML = contactsArray.map(contact => `
+                <div class="contact-card">
+                    <div class="contact-header">
+                        <div class="contact-name">
+                            <i class="fa-solid ${type === 'customers' ? 'fa-user' : 'fa-industry'}"></i>
+                            ${contact.name}
+                        </div>
+                        <div class="contact-type ${type === 'customers' ? 'customer' : 'supplier'}">
+                            ${type === 'customers' ? t.tabCustomers : t.tabSuppliers}
+                        </div>
+                    </div>
+                    <div class="contact-details">
+                        ${contact.phone ? `<div><i class="fa-solid fa-phone"></i> ${contact.phone}</div>` : ''}
+                        ${contact.address ? `<div><i class="fa-solid fa-map-marker-alt"></i> ${contact.address.substring(0, 50)}${contact.address.length > 50 ? '...' : ''}</div>` : ''}
+                        ${type === 'customers' ? t.thTotalPurchases : 'Total Supplied'}: ${contact.totalPurchases || contact.totalSupplied} ${t.textPieces}<br>
+                        ${t.thAmount}: Rs.${contact.totalAmount.toFixed(2)}<br>
+                        Brick Types: ${Array.from(contact.brickTypes).join(', ')}
+                        ${type === 'customers' && contact.salesmen && contact.salesmen.size > 0 ? `<br>Salesmen: ${Array.from(contact.salesmen).join(', ')}` : ''}
+                    </div>
+                    <div class="contact-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">${contact.totalPurchases || contact.totalSupplied}</div>
+                            <div class="stat-label-small">${type === 'customers' ? t.thTotalPurchases : 'Supplied'}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">Rs.${contact.totalAmount.toFixed(2)}</div>
+                            <div class="stat-label-small">${t.thAmount}</div>
+                        </div>
+                    </div>
+                    <small style="display: block; margin-top: 10px; color: var(--color-subtext);">
+                        ${t.thLastTransaction}: ${contact.lastTransaction}
+                    </small>
+                </div>
+            `).join('');
+        }
+
+        // --- Reports & Analytics ---
+        function applyDateFilter() {
+            reportStartDate = document.getElementById('startDate').value;
+            reportEndDate = document.getElementById('endDate').value;
+            updateReports();
+        }
+
+        function resetDateFilter() {
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            reportStartDate = null;
+            reportEndDate = null;
+            updateReports();
+        }
+
+        function filterTransactionsByDate(items) {
+            if (!reportStartDate && !reportEndDate) return items;
+            
+            return items.filter(item => {
+                const itemDate = new Date(item.date);
+                const start = reportStartDate ? new Date(reportStartDate) : new Date(0);
+                const end = reportEndDate ? new Date(reportEndDate) : new Date();
+                
+                // Set end date to end of day
+                end.setHours(23, 59, 59, 999);
+                
+                return itemDate >= start && itemDate <= end;
+            });
+        }
+
+        function updateReports() {
+            updateMonthlyChart();
+            updateBrickPerformanceTable();
+            updateExpenseAnalysisTable();
+            updateTopCustomersTable();
+        }
+
+        function updateMonthlyChart() {
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            const filteredTransactions = filterTransactionsByDate(transactions);
+            const filteredExpenses = filterTransactionsByDate(expenses);
+            
+            // Group by month
+            const monthlyData = {};
+            
+            // Add sales data
+            filteredTransactions.forEach(transaction => {
+                if (transaction.type === 'sale') {
+                    const date = new Date(transaction.date);
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0') + '/' + date.getFullYear();
+                    if (!monthlyData[month]) {
+                        monthlyData[month] = { revenue: 0, profit: 0, expenses: 0 };
+                    }
+                    monthlyData[month].revenue += transaction.totalAmount;
+                    monthlyData[month].profit += (transaction.totalAmount - transaction.cogs);
+                }
+            });
+            
+            // Add expenses data
+            filteredExpenses.forEach(expense => {
+                const date = new Date(expense.date);
+                const month = (date.getMonth() + 1).toString().padStart(2, '0') + '/' + date.getFullYear();
+                if (!monthlyData[month]) {
+                    monthlyData[month] = { revenue: 0, profit: 0, expenses: 0 };
+                }
+                monthlyData[month].expenses += expense.amount;
+                monthlyData[month].profit -= expense.amount;
+            });
+
+            const months = Object.keys(monthlyData).sort();
+            const revenues = months.map(month => monthlyData[month].revenue);
+            const profits = months.map(month => monthlyData[month].profit);
+            const expensesData = months.map(month => monthlyData[month].expenses);
+
+            if (monthlyChart) {
+                monthlyChart.destroy();
+            }
+
+            monthlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Revenue',
+                            data: revenues,
+                            backgroundColor: 'rgba(233, 84, 56, 0.7)',
+                            borderColor: 'rgba(233, 84, 56, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Profit',
+                            data: profits,
+                            backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                            borderColor: 'rgba(40, 167, 69, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Expenses',
+                            data: expensesData,
+                            backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                            borderColor: 'rgba(255, 193, 7, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'Rs.' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateBrickPerformanceTable() {
+            const tableBody = document.getElementById('brickPerformanceTable');
+            const filteredTransactions = filterTransactionsByDate(transactions);
+            
+            const brickPerformance = {};
+            
+            // Calculate performance for each brick type
+            brickTypes.forEach(brick => {
+                brickPerformance[brick.name] = {
+                    sold: 0,
+                    revenue: 0,
+                    cogs: 0,
+                    profit: 0
+                };
+            });
+            
+            filteredTransactions.forEach(transaction => {
+                if (transaction.type === 'sale' && brickPerformance[transaction.brickType]) {
+                    brickPerformance[transaction.brickType].sold += transaction.quantity;
+                    brickPerformance[transaction.brickType].revenue += transaction.totalAmount;
+                    brickPerformance[transaction.brickType].cogs += (transaction.cogs || 0);
+                    brickPerformance[transaction.brickType].profit += (transaction.totalAmount - (transaction.cogs || 0));
+                }
+            });
+
+            const performanceArray = Object.entries(brickPerformance)
+                .filter(([name, data]) => data.sold > 0)
+                .sort((a, b) => b[1].profit - a[1].profit);
+
+            tableBody.innerHTML = performanceArray.map(([name, data]) => {
+                const profitMargin = data.revenue > 0 ? (data.profit / data.revenue * 100).toFixed(1) : 0;
+                return `
+                    <tr>
+                        <td><strong>${name}</strong></td>
+                        <td>${data.sold}</td>
+                        <td>Rs.${data.revenue.toFixed(2)}</td>
+                        <td style="color: ${data.profit >= 0 ? 'var(--color-success)' : 'var(--color-danger)'}">
+                            Rs.${data.profit.toFixed(2)}
+                        </td>
+                        <td style="color: ${profitMargin >= 0 ? 'var(--color-success)' : 'var(--color-danger)'}">
+                            ${profitMargin}%
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (performanceArray.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px; color: var(--color-subtext);">
+                            No sales data for the selected period
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function updateExpenseAnalysisTable() {
+            const tableBody = document.getElementById('expenseAnalysisTable');
+            const filteredExpenses = filterTransactionsByDate(expenses);
+            
+            const categoryData = {};
+            let totalExpenses = 0;
+            
+            // Calculate expenses by category
+            filteredExpenses.forEach(expense => {
+                if (!categoryData[expense.category]) {
+                    categoryData[expense.category] = {
+                        amount: 0,
+                        count: 0
+                    };
+                }
+                categoryData[expense.category].amount += expense.amount;
+                categoryData[expense.category].count += 1;
+                totalExpenses += expense.amount;
+            });
+
+            const categoryArray = Object.entries(categoryData)
+                .sort((a, b) => b[1].amount - a[1].amount);
+
+            tableBody.innerHTML = categoryArray.map(([category, data]) => {
+                const percentage = totalExpenses > 0 ? ((data.amount / totalExpenses) * 100).toFixed(1) : 0;
+                const categoryText = translations[currentLang][`opt${category.charAt(0).toUpperCase() + category.slice(1)}`] || category;
+                
+                return `
+                    <tr>
+                        <td><strong>${categoryText}</strong></td>
+                        <td>Rs.${data.amount.toFixed(2)}</td>
+                        <td>${percentage}%</td>
+                        <td>${data.count}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (categoryArray.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px; color: var(--color-subtext);">
+                            No expense data for the selected period
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function updateTopCustomersTable() {
+            const tableBody = document.getElementById('topCustomersTable');
+            const filteredTransactions = filterTransactionsByDate(transactions);
+            
+            const customerData = {};
+            
+            filteredTransactions.forEach(transaction => {
+                if (transaction.type === 'sale' && transaction.customerName) {
+                    if (!customerData[transaction.customerName]) {
+                        customerData[transaction.customerName] = {
+                            purchases: 0,
+                            amount: 0,
+                            lastPurchase: transaction.date,
+                            salesman: transaction.salesmanName || ''
+                        };
+                    }
+                    customerData[transaction.customerName].purchases += transaction.quantity;
+                    customerData[transaction.customerName].amount += transaction.totalAmount;
+                    customerData[transaction.customerName].lastPurchase = transaction.date;
+                    if (transaction.salesmanName) {
+                        customerData[transaction.customerName].salesman = transaction.salesmanName;
+                    }
+                }
+            });
+
+            const topCustomers = Object.entries(customerData)
+                .sort((a, b) => b[1].amount - a[1].amount)
+                .slice(0, 10);
+
+            tableBody.innerHTML = topCustomers.map(([name, data]) => `
+                <tr>
+                    <td><strong>${name}</strong></td>
+                    <td>${data.purchases}</td>
+                    <td>Rs.${data.amount.toFixed(2)}</td>
+                    <td>${data.lastPurchase}</td>
+                </tr>
+            `).join('');
+
+            if (topCustomers.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px; color: var(--color-subtext);">
+                            No customer data for the selected period
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // --- PDF Export ---
+        function generatePDFReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const t = translations[currentLang];
+            
+            // Title
+            doc.setFontSize(20);
+            doc.setTextColor(233, 84, 56);
+            doc.text('Brick Trading Report', 20, 20);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 30);
+            doc.text(`Generated by: ${userAccounts[currentUser]?.name || currentUser}`, 20, 38);
+            
+            if (reportStartDate || reportEndDate) {
+                doc.text(`Period: ${reportStartDate || 'Beginning'} to ${reportEndDate || 'Today'}`, 20, 46);
+            }
+            
+            // Summary Section
+            doc.setFontSize(16);
+            doc.text('Business Summary', 20, 60);
+            
+            const summaryData = calculateAdvancedMetrics();
+            let yPos = 70;
+            
+            const summaryItems = [
+                `Total Revenue: Rs.${parseFloat(document.getElementById('totalRevenue').textContent.replace('Rs.', '')).toFixed(2)}`,
+                `Total COGS: Rs.${parseFloat(document.getElementById('totalCogs').textContent.replace('Rs.', '')).toFixed(2)}`,
+                `Total Expenses: Rs.${calculateTotalExpenses().toFixed(2)}`,
+                `Net Profit: ${document.getElementById('netProfit').textContent}`,
+                `Gross Margin: ${summaryData.grossMargin}`,
+                `Inventory Turnover: ${summaryData.inventoryTurnover}`,
+                `Return on Investment: ${summaryData.roi}`,
+                `Total Stock: ${document.getElementById('stockRemaining').textContent} pieces`,
+                `Investment in Stock: ${document.getElementById('remainingInvestment').textContent}`
+            ];
+            
+            summaryItems.forEach(item => {
+                doc.setFontSize(12);
+                doc.text('• ' + item, 20, yPos);
+                yPos += 7;
+            });
+            
+            // Expense Analysis
+            yPos += 10;
+            doc.setFontSize(16);
+            doc.text('Expense Analysis', 20, yPos);
+            yPos += 10;
+            
+            const expenseTableTop = yPos;
+            const expenseHeaders = ['Category', 'Amount', 'Percentage', 'Count'];
+            const expenseData = [];
+            
+            const filteredExpenses = filterTransactionsByDate(expenses);
+            const categoryData = {};
+            let totalExpenses = 0;
+            
+            filteredExpenses.forEach(expense => {
+                if (!categoryData[expense.category]) {
+                    categoryData[expense.category] = {
+                        amount: 0,
+                        count: 0
+                    };
+                }
+                categoryData[expense.category].amount += expense.amount;
+                categoryData[expense.category].count += 1;
+                totalExpenses += expense.amount;
+            });
+
+            Object.entries(categoryData).forEach(([category, data]) => {
+                const percentage = totalExpenses > 0 ? ((data.amount / totalExpenses) * 100).toFixed(1) : 0;
+                const categoryText = t[`opt${category.charAt(0).toUpperCase() + category.slice(1)}`] || category;
+                expenseData.push([categoryText, `Rs.${data.amount.toFixed(2)}`, `${percentage}%`, data.count.toString()]);
+            });
+
+            if (expenseData.length > 0) {
+                doc.autoTable({
+                    startY: expenseTableTop,
+                    head: [expenseHeaders],
+                    body: expenseData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [233, 84, 56] }
+                });
+                yPos = doc.lastAutoTable.finalY + 10;
+            }
+            
+            // Brick Performance
+            doc.setFontSize(16);
+            doc.text('Brick Type Performance', 20, yPos);
+            yPos += 10;
+            
+            const brickTableTop = yPos;
+            const brickHeaders = ['Brick Type', 'Sold', 'Revenue', 'Profit', 'Margin'];
+            const brickData = [];
+            
+            const brickPerformanceTable = document.querySelectorAll('#brickPerformanceTable tr');
+            brickPerformanceTable.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 5) {
+                    brickData.push([
+                        cells[0].textContent,
+                        cells[1].textContent,
+                        cells[2].textContent,
+                        cells[3].textContent,
+                        cells[4].textContent
+                    ]);
+                }
+            });
+            
+            if (brickData.length > 0) {
+                doc.autoTable({
+                    startY: brickTableTop,
+                    head: [brickHeaders],
+                    body: brickData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [233, 84, 56] }
+                });
+            }
+            
+            doc.save(`brick-trading-report-${new Date().toISOString().split('T')[0]}.pdf`);
+            showNotification('PDF report generated successfully!', 'success');
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        // --- Data Export/Import ---
+        function exportData() {
+            const data = {
+                brickTypes,
+                transactions,
+                expenses,
+                exportDate: new Date().toISOString(),
+                appVersion: '4.0',
+                exportedBy: currentUser
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `brick-trading-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            const t = translations[currentLang];
+            showNotification(t.alertExportSuccess, 'success');
+        }
+
+        function importData() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const t = translations[currentLang];
+            
+            if (!confirm(t.confirmImport)) {
+                event.target.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (importedData.brickTypes && importedData.transactions) {
+                        brickTypes = importedData.brickTypes;
+                        transactions = importedData.transactions;
+                        expenses = importedData.expenses || [];
+                        saveData();
+                        updateAllUI();
+                        showNotification(t.alertImportSuccess, 'success');
+                    } else {
+                        showNotification(t.alertImportError, 'danger');
+                    }
+                } catch (error) {
+                    showNotification(t.alertImportError, 'danger');
+                    console.error('Import error:', error);
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadBackup() {
+            const data = {
+                brickTypes,
+                transactions,
+                expenses,
+                backupDate: new Date().toISOString(),
+                appVersion: '4.0',
+                metadata: {
+                    totalBrickTypes: brickTypes.length,
+                    totalTransactions: transactions.length,
+                    totalExpenses: expenses.length,
+                    totalStock: calculateTotalStock(),
+                    totalValue: calculateTotalValue()
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `brick-trading-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            const t = translations[currentLang];
+            showNotification(t.alertBackupSuccess, 'success');
+        }
+
+        // --- Dashboard Calculations ---
+        function calculateTotalStock() {
+            return brickTypes.reduce((total, type) => total + type.stock, 0);
+        }
+
+        function calculateTotalValue() {
+            return brickTypes.reduce((total, type) => total + (type.stock * type.avgPurchasePrice), 0);
+        }
+
+        function calculateAverageInventory() {
+            const avgStock = brickTypes.reduce((total, type) => total + type.stock, 0) / brickTypes.length || 0;
+            const avgCost = brickTypes.reduce((total, type) => total + type.avgPurchasePrice, 0) / brickTypes.length || 0;
+            return avgStock * avgCost;
+        }
+
+        function calculateAdvancedMetrics() {
+            let totalRevenue = 0;
+            let totalCogs = 0;
+            let totalPurchased = 0;
+            let totalSold = 0;
+
+            transactions.forEach(transaction => {
+                if (transaction.type === 'purchase') {
+                    totalPurchased += transaction.quantity;
+                } else if (transaction.type === 'sale') {
+                    totalSold += transaction.quantity;
+                    totalRevenue += transaction.totalAmount;
+                    totalCogs += transaction.cogs;
+                }
+            });
+
+            const totalExpenses = calculateTotalExpenses();
+            const netProfit = totalRevenue - totalCogs - totalExpenses;
+            const totalStockRemaining = calculateTotalStock();
+            let remainingInvestment = 0;
+            
+            brickTypes.forEach(type => {
+                remainingInvestment += type.stock * type.avgPurchasePrice;
+            });
+
+            const grossMargin = totalRevenue > 0 ? ((totalRevenue - totalCogs) / totalRevenue * 100).toFixed(1) : 0;
+            const inventoryTurnover = totalCogs > 0 ? (totalCogs / (calculateAverageInventory() || 1)).toFixed(2) : 0;
+            const roi = (remainingInvestment > 0) ? (netProfit / remainingInvestment * 100).toFixed(1) : 0;
+            const currentRatio = (totalRevenue > 0) ? (totalRevenue / totalCogs).toFixed(2) : 0;
+
+            return {
+                grossMargin: grossMargin + '%',
+                inventoryTurnover: inventoryTurnover,
+                roi: roi + '%',
+                currentRatio: currentRatio
+            };
+        }
+
+        function updateDashboard() {
+            let totalRevenue = 0;
+            let totalCogs = 0;
+            let totalPurchased = 0;
+            let totalSold = 0;
+
+            transactions.forEach(transaction => {
+                if (transaction.type === 'purchase') {
+                    totalPurchased += transaction.quantity;
+                } else if (transaction.type === 'sale') {
+                    totalSold += transaction.quantity;
+                    totalRevenue += transaction.totalAmount;
+                    totalCogs += transaction.cogs;
+                }
+            });
+
+            const totalExpenses = calculateTotalExpenses();
+            const netProfit = totalRevenue - totalCogs - totalExpenses;
+            const totalStockRemaining = calculateTotalStock();
+            let remainingInvestment = 0;
+            
+            brickTypes.forEach(type => {
+                remainingInvestment += type.stock * type.avgPurchasePrice;
+            });
+
+            const metrics = calculateAdvancedMetrics();
+
+            // Update DOM
+            document.getElementById('totalRevenue').textContent = `Rs.${totalRevenue.toFixed(2)}`;
+            document.getElementById('totalCogs').textContent = `Rs.${totalCogs.toFixed(2)}`;
+            document.getElementById('totalExpenses').textContent = `Rs.${totalExpenses.toFixed(2)}`;
+            
+            document.getElementById('netProfit').textContent = `Rs.${netProfit.toFixed(2)}`;
+            document.getElementById('netProfit').classList.remove('profit-text', 'loss-text');
+            document.getElementById('netProfit').classList.add(netProfit >= 0 ? 'profit-text' : 'loss-text');
+
+            document.getElementById('totalPurchased').textContent = totalPurchased;
+            document.getElementById('totalSold').textContent = totalSold;
+            document.getElementById('stockRemaining').textContent = totalStockRemaining;
+            document.getElementById('remainingInvestment').textContent = `Rs.${remainingInvestment.toFixed(2)}`;
+            document.getElementById('expenseCategories').textContent = expenses.length;
+
+            // Update advanced metrics
+            document.getElementById('grossMargin').textContent = metrics.grossMargin;
+            document.getElementById('inventoryTurnover').textContent = metrics.inventoryTurnover;
+            document.getElementById('roi').textContent = metrics.roi;
+            document.getElementById('currentRatio').textContent = metrics.currentRatio;
+        }
+
+        // --- Notifications System ---
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            
+            const isRTL = document.body.classList.contains('ur');
+            
+            notification.innerHTML = `
+                <div class="notification-content">${message}</div>
+                <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        function checkLowStockAlerts() {
+            brickTypes.forEach(brick => {
+                if (brick.stock < 50) {
+                    const t = translations[currentLang];
+                    showNotification(t.alertLowStock(brick.name, brick.stock), 'warning');
+                }
+            });
+        }
+
+        function clearAllData() {
+            // Check if user is salesman (no permission)
+            if (currentUserRole === 'salesman') {
+                const t = translations[currentLang];
+                showNotification(t.alertAccessDenied, 'danger');
+                return;
+            }
+            
+            const t = translations[currentLang];
+            if (confirm(t.confirmClearAllData)) {
+                transactions = [];
+                brickTypes = [];
+                expenses = [];
+                saveData();
+                updateAllUI();
+                showNotification(t.alertDataCleared, 'success');
+            }
+        }
+    </script>
+</body>
+</html>
